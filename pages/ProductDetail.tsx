@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Share2, Shield } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Share2, Shield, Truck, CreditCard, DollarSign } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop } from '../services/store';
 import { Product } from '../types';
@@ -52,6 +52,10 @@ const ProductDetail: React.FC = () => {
     // Add to cart with variants
     addToCart(product, qty, selectedSize, selectedColor);
   };
+
+  // Calculate profit
+  const sellingPrice = product.sale_price || product.price;
+  const affiliateProfit = Math.max(0, sellingPrice - (product.wholesalePrice || sellingPrice));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -105,7 +109,7 @@ const ProductDetail: React.FC = () => {
             <div className="text-base text-gray-700 space-y-6" dangerouslySetInnerHTML={{ __html: product.description }} />
           </div>
           
-          {/* Variations */}
+          {/* Variants */}
           <div className="mt-8 space-y-4">
             {product.sizes && product.sizes.length > 0 && (
               <div>
@@ -191,15 +195,41 @@ const ProductDetail: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-8 border-t border-gray-200 pt-8">
+          <div className="mt-8 border-t border-gray-200 pt-8 space-y-3">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Shield size={18} className="text-green-500" />
-              <span>Secure transaction via Stripe</span>
+              <span>Secure transaction</span>
             </div>
-            <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-               <p className="text-sm text-blue-800">
-                 <strong>Affiliate Tip:</strong> Earn <span className="font-bold">{product.commission_rate * 100}% commission</span> (~{CURRENCY}{((product.sale_price || product.price) * product.commission_rate).toFixed(2)}) for every sale of this product.
-               </p>
+            
+            {/* Shipping & COD Info */}
+            <div className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
+               <div className="flex items-center text-gray-600">
+                 <Truck size={18} className="mr-2 text-indigo-500" />
+                 <div>
+                   <p>Inside City: <strong>{CURRENCY}{product.shippingFees?.inside}</strong></p>
+                   <p>Outside City: <strong>{CURRENCY}{product.shippingFees?.outside}</strong></p>
+                 </div>
+               </div>
+               <div className="flex items-center">
+                  {product.isCodAvailable ? (
+                    <span className="flex items-center text-green-700 font-medium"><CreditCard size={16} className="mr-1"/> COD Available</span>
+                  ) : (
+                    <span className="flex items-center text-red-600 font-medium"><CreditCard size={16} className="mr-1"/> No COD</span>
+                  )}
+               </div>
+            </div>
+
+            {/* Affiliate Info */}
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+               <div className="flex items-start">
+                 <DollarSign size={20} className="text-indigo-600 mt-0.5 mr-2" />
+                 <div>
+                   <h4 className="text-sm font-bold text-indigo-900">Affiliate / Reseller Profit</h4>
+                   <p className="text-sm text-indigo-700 mt-1">
+                     Buy at wholesale or sell to earn: <span className="font-bold text-lg">{CURRENCY}{affiliateProfit.toFixed(2)}</span> profit per unit.
+                   </p>
+                 </div>
+               </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Minus, ArrowRight, MapPin, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, MapPin, CreditCard, AlertTriangle } from 'lucide-react';
 import { useCart, useShop } from '../services/store';
 import { CURRENCY } from '../constants';
 import { Link } from 'react-router-dom';
@@ -11,12 +11,20 @@ const Cart: React.FC = () => {
   // Shipping State (Default to inside city)
   const [shippingLocation, setShippingLocation] = useState<'inside' | 'outside'>('inside');
   
-  const shippingCost = shippingLocation === 'inside' 
-    ? settings.shippingInsideCity 
-    : settings.shippingOutsideCity;
+  // Calculate shipping based on per-product fees
+  // Sum of (Product Fee * Quantity) for each item in cart
+  const shippingCost = items.reduce((sum, item) => {
+    const fee = shippingLocation === 'inside' 
+      ? (item.shippingFees?.inside || 0) 
+      : (item.shippingFees?.outside || 0);
+    return sum + (fee * item.quantity);
+  }, 0);
 
   const taxAmount = total * (settings.taxRate / 100);
   const grandTotal = total + shippingCost + taxAmount;
+
+  // Check if COD is available for ALL items
+  const isCodAvailable = items.every(item => item.isCodAvailable);
 
   if (items.length === 0) {
     return (
@@ -66,6 +74,10 @@ const Cart: React.FC = () => {
                     <div className="mt-1 text-sm text-gray-500 flex space-x-3">
                       {item.selectedSize && <span>Size: <strong>{item.selectedSize}</strong></span>}
                       {item.selectedColor && <span>Color: <strong>{item.selectedColor}</strong></span>}
+                    </div>
+                    {/* Display Shipping Info */}
+                    <div className="mt-1 text-xs text-gray-400">
+                      Delivery: {CURRENCY}{item.shippingFees?.[shippingLocation]} / item
                     </div>
                   </div>
                   <div className="flex flex-1 items-end justify-between text-sm mt-2">
@@ -122,7 +134,6 @@ const Cart: React.FC = () => {
                   />
                   <span className="ml-3 font-medium text-gray-900">Inside City (Special Area)</span>
                 </div>
-                <span className="text-gray-600 font-bold">{CURRENCY}{settings.shippingInsideCity}</span>
               </label>
 
               <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${shippingLocation === 'outside' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:bg-gray-50'}`}>
@@ -136,15 +147,23 @@ const Cart: React.FC = () => {
                   />
                   <span className="ml-3 font-medium text-gray-900">Outside City / Rest of Country</span>
                 </div>
-                <span className="text-gray-600 font-bold">{CURRENCY}{settings.shippingOutsideCity}</span>
               </label>
             </div>
             
             <div className="mt-4 pt-4 border-t border-gray-100">
                <div className="flex items-center text-sm text-gray-600">
                  <CreditCard size={16} className="mr-2" />
-                 Cash on Delivery (COD) is <span className={`font-bold ml-1 ${settings.codEnabled ? 'text-green-600' : 'text-red-600'}`}>{settings.codEnabled ? 'Available' : 'Unavailable'}</span>
+                 Cash on Delivery: 
+                 <span className={`font-bold ml-1 ${isCodAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                   {isCodAvailable ? 'Available' : 'Unavailable'}
+                 </span>
                </div>
+               {!isCodAvailable && (
+                 <div className="mt-2 flex items-start text-xs text-red-500">
+                   <AlertTriangle size={12} className="mr-1 mt-0.5" />
+                   One or more items in your cart do not support Cash on Delivery.
+                 </div>
+               )}
             </div>
           </div>
 
@@ -159,7 +178,7 @@ const Cart: React.FC = () => {
                   <dd className="font-medium text-gray-900">{CURRENCY}{total.toFixed(2)}</dd>
                 </div>
                 <div className="py-4 flex items-center justify-between">
-                  <dt className="text-gray-600">Shipping Cost</dt>
+                  <dt className="text-gray-600">Shipping Total</dt>
                   <dd className="font-medium text-gray-900">{CURRENCY}{shippingCost.toFixed(2)}</dd>
                 </div>
                 {settings.taxRate > 0 && (

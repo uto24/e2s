@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Plus, Search, Filter, X, Image as ImageIcon } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, X, Image as ImageIcon, DollarSign, Truck, CreditCard } from 'lucide-react';
 import { useShop } from '../services/store';
 import { CURRENCY } from '../constants';
 import { Product } from '../types';
@@ -13,13 +13,16 @@ const AdminProducts: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     price: '',
+    wholesalePrice: '',
     category: '',
     image: '',
     stock: '',
-    commission: '0.10',
     description: '',
     sizes: '',
-    colors: ''
+    colors: '',
+    shippingInside: '60',
+    shippingOutside: '120',
+    isCodAvailable: true
   });
 
   const filteredProducts = products.filter(product => 
@@ -28,28 +31,40 @@ const AdminProducts: React.FC = () => {
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const sellingPrice = parseFloat(formData.price) || 0;
+    // Default wholesale to selling price if not set (no profit)
+    const wholesalePrice = parseFloat(formData.wholesalePrice) || sellingPrice;
+
     const newProduct: Product = {
       id: Math.random().toString(36).substr(2, 9),
       slug: formData.title.toLowerCase().replace(/ /g, '-'),
       title: formData.title,
       description: formData.description || 'No description provided.',
-      price: parseFloat(formData.price) || 0,
+      price: sellingPrice,
+      wholesalePrice: wholesalePrice,
       category: formData.category || 'General',
       image: formData.image || 'https://images.unsplash.com/photo-1553456558-aff63285bdd1?auto=format&fit=crop&w=800&q=80',
       rating: 0,
       reviews_count: 0,
       stock: parseInt(formData.stock) || 0,
-      commission_rate: parseFloat(formData.commission) || 0.10,
       status: 'active',
       sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [],
       colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c !== '') : [],
+      shippingFees: {
+        inside: parseFloat(formData.shippingInside) || 0,
+        outside: parseFloat(formData.shippingOutside) || 0
+      },
+      isCodAvailable: formData.isCodAvailable
     };
 
     addProduct(newProduct);
@@ -57,13 +72,16 @@ const AdminProducts: React.FC = () => {
     setFormData({
       title: '',
       price: '',
+      wholesalePrice: '',
       category: '',
       image: '',
       stock: '',
-      commission: '0.10',
       description: '',
       sizes: '',
-      colors: ''
+      colors: '',
+      shippingInside: '60',
+      shippingOutside: '120',
+      isCodAvailable: true
     });
   };
 
@@ -121,13 +139,13 @@ const AdminProducts: React.FC = () => {
                   Category
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  Pricing
+                </th>
+                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Shipping
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Stock
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vars
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -147,7 +165,7 @@ const AdminProducts: React.FC = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                        <div className="text-sm text-gray-500">SKU: {product.id.toUpperCase()}</div>
+                        <div className="text-xs text-gray-500">SKU: {product.id.toUpperCase()}</div>
                       </div>
                     </div>
                   </td>
@@ -156,8 +174,17 @@ const AdminProducts: React.FC = () => {
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {CURRENCY}{product.price.toFixed(2)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-gray-900 font-medium">Sell: {CURRENCY}{product.price}</span>
+                      <span className="text-gray-500 text-xs">Wholesale: {CURRENCY}{product.wholesalePrice}</span>
+                    </div>
+                  </td>
+                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex flex-col text-xs">
+                       <span>In: {CURRENCY}{product.shippingFees?.inside}</span>
+                       <span>Out: {CURRENCY}{product.shippingFees?.outside}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -165,15 +192,13 @@ const AdminProducts: React.FC = () => {
                       <span className="text-sm text-gray-900">{product.stock}</span>
                     </div>
                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {((product.sizes?.length || 0) > 0 || (product.colors?.length || 0) > 0) ? (
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300">Yes</span>
-                    ) : '-'}
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {product.status.toUpperCase()}
-                    </span>
+                     <div className="flex flex-col space-y-1">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {product.status.toUpperCase()}
+                      </span>
+                      {!product.isCodAvailable && <span className="text-xs text-red-500 font-semibold">NO COD</span>}
+                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
@@ -201,7 +226,7 @@ const AdminProducts: React.FC = () => {
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}></div>
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">Add New Product</h3>
@@ -221,15 +246,27 @@ const AdminProducts: React.FC = () => {
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Price</label>
+                      <label className="block text-sm font-medium text-gray-700 flex items-center"><DollarSign size={14} className="mr-1"/> Selling Price</label>
                       <input 
                         type="number" 
                         name="price" 
                         required
                         value={formData.price}
                         onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 flex items-center"><DollarSign size={14} className="mr-1"/> Wholesale Price</label>
+                      <input 
+                        type="number" 
+                        name="wholesalePrice" 
+                        value={formData.wholesalePrice}
+                        onChange={handleInputChange}
+                        placeholder="Cost for affiliates"
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       />
                     </div>
@@ -245,6 +282,43 @@ const AdminProducts: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 flex items-center"><Truck size={14} className="mr-1"/> Shipping (Inside)</label>
+                      <input 
+                        type="number" 
+                        name="shippingInside" 
+                        value={formData.shippingInside}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                     <div>
+                      <label className="block text-sm font-medium text-gray-700 flex items-center"><Truck size={14} className="mr-1"/> Shipping (Outside)</label>
+                      <input 
+                        type="number" 
+                        name="shippingOutside" 
+                        value={formData.shippingOutside}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                     <div className="flex items-center pt-6">
+                      <input
+                        id="isCodAvailable"
+                        name="isCodAvailable"
+                        type="checkbox"
+                        checked={formData.isCodAvailable}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isCodAvailable" className="ml-2 block text-sm font-medium text-gray-700">
+                         Allow COD?
+                      </label>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
                     <select 

@@ -26,24 +26,29 @@ export interface Product {
   title: string;
   slug: string;
   description: string;
-  price: number;
+  price: number; // Selling Price
+  wholesalePrice: number; // Base price for affiliates/resellers
   sale_price?: number;
   category: string;
   image: string;
   rating: number;
   reviews_count: number;
   stock: number;
-  commission_rate: number; // Percentage, e.g., 0.10 for 10%
   status: 'active' | 'draft' | 'archived';
-  sizes?: string[]; // Array of available sizes
-  colors?: string[]; // Array of available colors
+  sizes?: string[]; 
+  colors?: string[];
+  shippingFees: {
+    inside: number;
+    outside: number;
+  };
+  isCodAvailable: boolean;
 }
 
 export interface CartItem extends Product {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
-  cartItemId: string; // Unique ID for cart entry (product + variants)
+  cartItemId: string;
 }
 
 export interface AffiliateStat {
@@ -83,9 +88,6 @@ export interface AppSettings {
   appName: string;
   currency: string;
   taxRate: number;
-  shippingInsideCity: number; // Special area rate
-  shippingOutsideCity: number; // Rest of country rate
-  codEnabled: boolean; // Cash on Delivery toggle
+  // Shipping is now per product
   maintenanceMode: boolean;
-  globalCommission: number;
 }

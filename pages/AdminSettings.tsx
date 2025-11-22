@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, DollarSign, Truck, CreditCard } from 'lucide-react';
+import { Save, Sliders, Power, DollarSign } from 'lucide-react';
 import { useShop } from '../services/store';
 import { CURRENCY } from '../constants';
 
@@ -26,9 +26,6 @@ const AdminSettings: React.FC = () => {
     const payload = {
       ...localSettings,
       taxRate: Number(localSettings.taxRate),
-      shippingInsideCity: Number(localSettings.shippingInsideCity),
-      shippingOutsideCity: Number(localSettings.shippingOutsideCity),
-      globalCommission: Number(localSettings.globalCommission)
     };
 
     updateSettings(payload);
@@ -39,13 +36,6 @@ const AdminSettings: React.FC = () => {
   const toggleMaintenance = () => {
     const newVal = !localSettings.maintenanceMode;
     const updated = { ...localSettings, maintenanceMode: newVal };
-    setLocalSettings(updated);
-    updateSettings(updated);
-  };
-
-  const toggleCod = () => {
-    const newVal = !localSettings.codEnabled;
-    const updated = { ...localSettings, codEnabled: newVal };
     setLocalSettings(updated);
     updateSettings(updated);
   };
@@ -101,93 +91,6 @@ const AdminSettings: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Shipping Configuration */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center mb-4">
-             <Truck className="h-5 w-5 text-gray-400 mr-2" />
-             <h3 className="text-lg leading-6 font-medium text-gray-900">Delivery & Shipping</h3>
-          </div>
-           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-              <div className="sm:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Special Area Rate (Inside City) - {CURRENCY}</label>
-                <div className="mt-1">
-                  <input
-                    type="number"
-                    name="shippingInsideCity"
-                    value={localSettings.shippingInsideCity}
-                    onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Rest of Country Rate (Outside City) - {CURRENCY}</label>
-                <div className="mt-1">
-                  <input
-                    type="number"
-                    name="shippingOutsideCity"
-                    value={localSettings.shippingOutsideCity}
-                    onChange={handleChange}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                  />
-                </div>
-              </div>
-           </div>
-        </div>
-      </div>
-
-      {/* Payment & COD */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-start">
-               <div className="flex-shrink-0">
-                 <CreditCard className="h-6 w-6 text-gray-400" />
-               </div>
-               <div className="ml-3">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Cash on Delivery (COD)</h3>
-                  <p className="text-sm text-gray-500">Enable or disable COD payment option for customers.</p>
-               </div>
-            </div>
-            <div className="flex items-center">
-              <button 
-                 onClick={toggleCod}
-                 className={`${localSettings.codEnabled ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-              >
-                <span className={`${localSettings.codEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}></span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Affiliate Config */}
-       <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center mb-4">
-             <DollarSign className="h-5 w-5 text-gray-400 mr-2" />
-             <h3 className="text-lg leading-6 font-medium text-gray-900">Affiliate Configuration</h3>
-          </div>
-           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-              <div className="sm:col-span-3">
-              <label className="block text-sm font-medium text-gray-700">Global Commission Rate (0.1 = 10%)</label>
-              <div className="mt-1">
-                <input
-                  type="number"
-                  name="globalCommission"
-                  step="0.01"
-                  value={localSettings.globalCommission}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                />
-              </div>
-            </div>
-           </div>
-        </div>
-       </div>
 
        {/* Maintenance Mode */}
        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
