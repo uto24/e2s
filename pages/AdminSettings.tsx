@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power } from 'lucide-react';
+import { Save, Sliders, Power, Megaphone } from 'lucide-react';
 import { useShop } from '../services/store';
+import { DEFAULT_SETTINGS } from '../constants';
 
 const AdminSettings: React.FC = () => {
   const { settings, updateSettings } = useShop();
@@ -8,7 +9,8 @@ const AdminSettings: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    setLocalSettings(settings);
+    // Ensure deep merge if fields are missing
+    setLocalSettings({ ...DEFAULT_SETTINGS, ...settings });
   }, [settings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -16,6 +18,17 @@ const AdminSettings: React.FC = () => {
     setLocalSettings(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }));
+  };
+  
+  const handleCampaignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setLocalSettings(prev => ({
+      ...prev,
+      campaign: {
+        ...prev.campaign,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      }
     }));
   };
 
@@ -33,6 +46,16 @@ const AdminSettings: React.FC = () => {
   const toggleMaintenance = () => {
     const newVal = !localSettings.maintenanceMode;
     const updated = { ...localSettings, maintenanceMode: newVal };
+    setLocalSettings(updated);
+    updateSettings(updated);
+  };
+  
+  const toggleCampaign = () => {
+    const newVal = !localSettings.campaign.isActive;
+    const updated = { 
+        ...localSettings, 
+        campaign: { ...localSettings.campaign, isActive: newVal } 
+    };
     setLocalSettings(updated);
     updateSettings(updated);
   };
@@ -86,6 +109,68 @@ const AdminSettings: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Campaign Settings */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center">
+                <Megaphone className="h-5 w-5 text-gray-400 mr-2" />
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Home Page Flash Campaign</h3>
+             </div>
+             <button 
+               onClick={toggleCampaign}
+               className={`${localSettings.campaign.isActive ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none`}
+            >
+              <span className={`${localSettings.campaign.isActive ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}></span>
+            </button>
+          </div>
+          
+          {localSettings.campaign.isActive && (
+              <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 animate-fade-in">
+                <div className="sm:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700">Campaign Title</label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      name="title"
+                      value={localSettings.campaign.title}
+                      onChange={handleCampaignChange}
+                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+                <div className="sm:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700">Subtitle</label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      name="subtitle"
+                      value={localSettings.campaign.subtitle}
+                      onChange={handleCampaignChange}
+                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+                 <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">End Time</label>
+                  <div className="mt-1">
+                    <input
+                      type="datetime-local"
+                      name="endTime"
+                      value={localSettings.campaign.endTime ? localSettings.campaign.endTime.slice(0, 16) : ''}
+                      onChange={(e) => setLocalSettings(prev => ({
+                          ...prev,
+                          campaign: { ...prev.campaign, endTime: new Date(e.target.value).toISOString() }
+                      }))}
+                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+              </div>
+          )}
         </div>
       </div>
 

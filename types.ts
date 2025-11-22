@@ -30,7 +30,8 @@ export interface Product {
   wholesalePrice: number; // Base price for affiliates/resellers
   sale_price?: number;
   category: string;
-  image: string;
+  image: string; // Primary thumbnail
+  images?: string[]; // Gallery images
   rating: number;
   reviews_count: number;
   stock: number;
@@ -42,6 +43,7 @@ export interface Product {
     outside: number;
   };
   isCodAvailable: boolean;
+  specifications?: Record<string, string>; // Key-value pairs for details
 }
 
 export interface CartItem extends Product {
@@ -88,6 +90,11 @@ export interface AppSettings {
   appName: string;
   currency: string;
   taxRate: number;
-  // Shipping is now per product
   maintenanceMode: boolean;
+  campaign: {
+    isActive: boolean;
+    title: string;
+    subtitle: string;
+    endTime: string; // ISO string
+  };
 }

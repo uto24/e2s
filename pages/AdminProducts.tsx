@@ -15,7 +15,7 @@ const AdminProducts: React.FC = () => {
     price: '',
     wholesalePrice: '',
     category: '',
-    image: '',
+    images: '', // Changed from image to images (string for textarea)
     stock: '',
     description: '',
     sizes: '',
@@ -43,6 +43,14 @@ const AdminProducts: React.FC = () => {
     
     const sellingPrice = parseFloat(formData.price) || 0;
     const wholesalePrice = parseFloat(formData.wholesalePrice) || sellingPrice;
+    
+    // Process Images
+    const imageList = formData.images
+      .split(',')
+      .map(url => url.trim())
+      .filter(url => url !== '');
+      
+    const mainImage = imageList.length > 0 ? imageList[0] : 'https://images.unsplash.com/photo-1553456558-aff63285bdd1?auto=format&fit=crop&w=800&q=80';
 
     const newProduct: Product = {
       id: Math.random().toString(36).substr(2, 9),
@@ -52,7 +60,8 @@ const AdminProducts: React.FC = () => {
       price: sellingPrice,
       wholesalePrice: wholesalePrice,
       category: formData.category || 'General',
-      image: formData.image || 'https://images.unsplash.com/photo-1553456558-aff63285bdd1?auto=format&fit=crop&w=800&q=80',
+      image: mainImage,
+      images: imageList,
       rating: 0,
       reviews_count: 0,
       stock: parseInt(formData.stock) || 0,
@@ -73,7 +82,7 @@ const AdminProducts: React.FC = () => {
       price: '',
       wholesalePrice: '',
       category: '',
-      image: '',
+      images: '',
       stock: '',
       description: '',
       sizes: '',
@@ -360,26 +369,24 @@ const AdminProducts: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                    <div className="mt-1 flex rounded-md shadow-sm">
-                      <input 
-                        type="text" 
-                        name="image" 
-                        value={formData.image}
+                    <label className="block text-sm font-medium text-gray-700">Images (Comma separated URLs)</label>
+                    <div className="mt-1">
+                      <textarea 
+                        name="images" 
+                        value={formData.images}
                         onChange={handleInputChange}
-                        placeholder="https://..."
-                        className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md focus:ring-red-500 focus:border-red-500 sm:text-sm border-gray-300 border"
+                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                        rows={3}
+                        className="block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-red-500 focus:border-red-500 sm:text-sm"
                       />
-                      <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                        <ImageIcon size={16} />
-                      </span>
+                      <p className="mt-1 text-xs text-gray-500">Add multiple image links separated by commas.</p>
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Description</label>
                     <textarea 
                       name="description" 
-                      rows={3} 
+                      rows={4} 
                       value={formData.description}
                       onChange={handleInputChange}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"

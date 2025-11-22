@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, DollarSign, ChevronRight, Heart, Share2, Info, Box, CornerUpLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, DollarSign, ChevronRight, Heart, Share2, Info, Box, CornerUpLeft, Copy, Check } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
 import { Product, UserRole } from '../types';
@@ -16,18 +16,21 @@ const ProductDetail: React.FC = () => {
   const [qty, setQty] = useState(1);
   
   // UI State
-  const [activeTab, setActiveTab] = useState<'desc' | 'reviews' | 'shipping'>('desc');
+  const [activeTab, setActiveTab] = useState<'desc' | 'shipping'>('desc');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
+  const [mainImage, setMainImage] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (products.length > 0) {
       const found = products.find(p => p.id === id);
       if (found) {
         setProduct(found);
+        setMainImage(found.image);
         setSelectedSize('');
         setSelectedColor('');
         setQty(1);
@@ -57,6 +60,25 @@ const ProductDetail: React.FC = () => {
     addToCart(product, qty, selectedSize, selectedColor);
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.title,
+          text: `Check out this amazing product: ${product.title}`,
+          url: url,
+        });
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
     const x = ((e.pageX - left) / width) * 100;
@@ -67,6 +89,11 @@ const ProductDetail: React.FC = () => {
   const sellingPrice = product.sale_price || product.price;
   const affiliateProfit = Math.max(0, sellingPrice - (product.wholesalePrice || sellingPrice));
   const isReseller = user?.role === UserRole.AFFILIATE || user?.role === UserRole.SELLER || user?.role === UserRole.ADMIN;
+  
+  // Fallback gallery if no extra images provided
+  const galleryImages = product.images && product.images.length > 0 
+    ? product.images 
+    : [product.image, product.image, product.image];
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12 animate-fade-in">
@@ -95,7 +122,7 @@ const ProductDetail: React.FC = () => {
               onMouseMove={handleMouseMove}
             >
               <img
-                src={product.image}
+                src={mainImage}
                 alt={product.title}
                 className={`w-full h-full object-contain p-4 transition-transform duration-200 ${isZooming ? 'opacity-0' : 'opacity-100'}`}
               />
@@ -103,7 +130,7 @@ const ProductDetail: React.FC = () => {
                 <div 
                   className="absolute inset-0 bg-no-repeat pointer-events-none"
                   style={{
-                    backgroundImage: `url(${product.image})`,
+                    backgroundImage: `url(${mainImage})`,
                     backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
                     backgroundSize: '250%'
                   }}
@@ -117,11 +144,14 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-4 gap-4">
-               {/* Placeholder thumbnails since we only have 1 image in mock data */}
-               {[product.image, product.image, product.image, product.image].map((img, i) => (
-                 <button key={i} className="aspect-square rounded-xl border border-gray-200 overflow-hidden hover:border-red-500 transition-all focus:ring-2 focus:ring-red-500 bg-white">
-                   <img src={img} alt="" className="w-full h-full object-cover opacity-70 hover:opacity-100" />
+            <div className="grid grid-cols-5 gap-2">
+               {galleryImages.map((img, i) => (
+                 <button 
+                   key={i} 
+                   onClick={() => setMainImage(img)}
+                   className={`aspect-square rounded-xl border overflow-hidden hover:border-red-500 transition-all focus:ring-2 focus:ring-red-500 bg-white ${mainImage === img ? 'border-red-600 ring-2 ring-red-200' : 'border-gray-200'}`}
+                 >
+                   <img src={img} alt="" className="w-full h-full object-cover" />
                  </button>
                ))}
             </div>
@@ -139,15 +169,18 @@ const ProductDetail: React.FC = () => {
                       <span className="ml-1 font-bold text-gray-700">{product.rating || 4.5}</span>
                     </div>
                     <span className="text-sm text-gray-400">|</span>
-                    <span className="text-sm text-gray-500">{product.reviews_count || 12} রিভিউ</span>
-                    <span className="text-sm text-gray-400">|</span>
                     <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {product.stock > 0 ? 'স্টকে আছে' : 'স্টক আউট'}
                     </span>
                   </div>
                 </div>
-                <button className="p-2 rounded-full bg-gray-50 hover:bg-red-50 hover:text-red-600 transition-colors text-gray-400">
-                  <Heart size={24} />
+                <button 
+                  onClick={handleShare}
+                  className="p-2 rounded-full bg-gray-50 hover:bg-red-50 hover:text-red-600 transition-colors text-gray-500 relative"
+                  title="শেয়ার করুন"
+                >
+                  {copied ? <Check size={24} className="text-green-600" /> : <Share2 size={24} />}
+                  {copied && <span className="absolute -top-8 right-0 bg-black text-white text-xs py-1 px-2 rounded shadow-lg whitespace-nowrap">লিংক কপি হয়েছে!</span>}
                 </button>
               </div>
 
@@ -269,33 +302,55 @@ const ProductDetail: React.FC = () => {
               onClick={() => setActiveTab('desc')}
               className={`px-8 py-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'desc' ? 'border-red-600 text-red-600 bg-red-50' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
             >
-              পণ্যের বিবরণ
-            </button>
-            <button 
-              onClick={() => setActiveTab('reviews')}
-              className={`px-8 py-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'reviews' ? 'border-red-600 text-red-600 bg-red-50' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-            >
-              রিভিউ ({product.reviews_count})
+              পণ্যের বিবরণ ও স্পেসিফিকেশন
             </button>
             <button 
               onClick={() => setActiveTab('shipping')}
               className={`px-8 py-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'shipping' ? 'border-red-600 text-red-600 bg-red-50' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
             >
-              ডেলিভারি চার্জ
+              ডেলিভারি চার্জ ও শর্তাবলী
             </button>
           </div>
           <div className="p-8">
             {activeTab === 'desc' && (
-              <div className="prose prose-red max-w-none text-gray-600 leading-relaxed animate-fade-in">
-                <p dangerouslySetInnerHTML={{ __html: product.description }}></p>
+              <div className="animate-fade-in">
+                <div className="prose prose-red max-w-none text-gray-600 leading-relaxed mb-10">
+                  <p dangerouslySetInnerHTML={{ __html: product.description }}></p>
+                </div>
+                
+                {/* Product Specifications Table */}
+                <div className="border rounded-xl overflow-hidden">
+                  <div className="bg-gray-50 px-6 py-4 border-b font-bold text-gray-900">পণ্য স্পেসিফিকেশন</div>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200">
+                       <tr className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-500 w-1/3">ক্যাটাগরি</td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{product.category}</td>
+                       </tr>
+                       {product.sizes && product.sizes.length > 0 && (
+                         <tr className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-500">সাইজ</td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{product.sizes.join(', ')}</td>
+                         </tr>
+                       )}
+                       {product.colors && product.colors.length > 0 && (
+                         <tr className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-500">কালার</td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{product.colors.join(', ')}</td>
+                         </tr>
+                       )}
+                       <tr className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-500">স্টক স্ট্যাটাস</td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{product.stock > 0 ? 'স্টকে আছে' : 'আউট অফ স্টক'}</td>
+                       </tr>
+                       <tr className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-500">SKU</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 font-mono">{product.id.toUpperCase()}</td>
+                       </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            )}
-            {activeTab === 'reviews' && (
-               <div className="text-center py-10 animate-fade-in">
-                 <div className="inline-block p-4 rounded-full bg-gray-100 mb-4"><Star size={32} className="text-gray-400" /></div>
-                 <h3 className="text-lg font-medium text-gray-900">এখনো কোনো রিভিউ নেই</h3>
-                 <p className="text-gray-500">এই পণ্যটি কিনে প্রথম রিভিউ দিন!</p>
-               </div>
             )}
             {activeTab === 'shipping' && (
               <div className="grid md:grid-cols-2 gap-8 animate-fade-in">
@@ -313,12 +368,15 @@ const ProductDetail: React.FC = () => {
                   </ul>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                  <h3 className="font-bold text-gray-900 mb-4 flex items-center"><Box className="mr-2 text-red-600" /> ডেলিভারি সময়</h3>
+                  <h3 className="font-bold text-gray-900 mb-4 flex items-center"><Box className="mr-2 text-red-600" /> ডেলিভারি সময় ও রিটার্ন পলিসি</h3>
                   <p className="text-gray-600 mb-2">আমরা দ্রুততম সময়ে পণ্য পৌঁছে দেওয়ার চেষ্টা করি।</p>
-                  <ul className="list-disc list-inside text-gray-600 space-y-1 ml-2">
+                  <ul className="list-disc list-inside text-gray-600 space-y-1 ml-2 mb-4">
                     <li>ঢাকা সিটি: ২৪-৪৮ ঘন্টা</li>
                     <li>ঢাকার বাইরে: ৩-৫ দিন</li>
                   </ul>
+                  <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800 border border-red-100">
+                    <strong>রিটার্ন পলিসি:</strong> পণ্য হাতে পাওয়ার পর কোনো সমস্যা থাকলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন।
+                  </div>
                 </div>
               </div>
             )}

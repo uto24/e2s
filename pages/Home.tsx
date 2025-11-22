@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Zap, ShieldCheck, Truck, Star, Clock, Mail, Gift, Smartphone, Shirt, Home as HomeIcon, Sparkles } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useShop } from '../services/store';
@@ -7,6 +7,29 @@ import { Link } from 'react-router-dom';
 const Home: React.FC = () => {
   const { products, settings } = useShop();
   const featuredProducts = products.slice(0, 8);
+  
+  // Countdown timer logic for campaign
+  const [timeLeft, setTimeLeft] = useState<{hours: number, minutes: number, seconds: number}>({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+      if (settings.campaign?.isActive && settings.campaign.endTime) {
+          const interval = setInterval(() => {
+              const now = new Date().getTime();
+              const distance = new Date(settings.campaign.endTime).getTime() - now;
+              
+              if (distance < 0) {
+                  clearInterval(interval);
+                  setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+              } else {
+                  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + Math.floor(distance / (1000 * 60 * 60 * 24)) * 24;
+                  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                  setTimeLeft({ hours, minutes, seconds });
+              }
+          }, 1000);
+          return () => clearInterval(interval);
+      }
+  }, [settings.campaign]);
 
   if (settings.maintenanceMode) {
     return (
@@ -112,33 +135,35 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Flash Sale Banner */}
-      <section className="py-10 bg-red-600 my-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-white">
-          <div className="flex items-center mb-6 md:mb-0">
-             <div className="bg-white/20 p-4 rounded-xl mr-6 backdrop-blur-sm animate-pulse">
-               <Clock size={40} className="text-white" />
-             </div>
-             <div>
-               <h2 className="text-3xl font-bold">ফ্ল্যাশ সেল!</h2>
-               <p className="text-red-100 text-lg">সীমিত সময়ের জন্য বিশেষ মূল্যছাড়</p>
-             </div>
-          </div>
-          <div className="flex space-x-4 text-center">
-            {['02', '14', '35'].map((time, i) => (
-              <div key={i} className="bg-white text-red-600 rounded-lg p-3 min-w-[70px]">
-                <span className="text-3xl font-bold block">{time}</span>
-                <span className="text-xs font-bold uppercase">{['ঘন্টা', 'মিনিট', 'সেকেন্ড'][i]}</span>
+      {/* Flash Sale Banner - Dynamic from Settings */}
+      {settings.campaign?.isActive && (
+          <section className="py-10 bg-red-600 my-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-white">
+              <div className="flex items-center mb-6 md:mb-0">
+                 <div className="bg-white/20 p-4 rounded-xl mr-6 backdrop-blur-sm animate-pulse">
+                   <Clock size={40} className="text-white" />
+                 </div>
+                 <div>
+                   <h2 className="text-3xl font-bold">{settings.campaign.title || "ফ্ল্যাশ সেল!"}</h2>
+                   <p className="text-red-100 text-lg">{settings.campaign.subtitle || "সীমিত সময়ের জন্য বিশেষ মূল্যছাড়"}</p>
+                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mt-6 md:mt-0">
-            <Link to="/categories" className="bg-white text-red-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg">
-              এখনই কিনুন
-            </Link>
-          </div>
-        </div>
-      </section>
+              <div className="flex space-x-4 text-center">
+                {[timeLeft.hours, timeLeft.minutes, timeLeft.seconds].map((time, i) => (
+                  <div key={i} className="bg-white text-red-600 rounded-lg p-3 min-w-[70px]">
+                    <span className="text-3xl font-bold block">{String(time).padStart(2, '0')}</span>
+                    <span className="text-xs font-bold uppercase">{['ঘন্টা', 'মিনিট', 'সেকেন্ড'][i]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 md:mt-0">
+                <Link to="/categories" className="bg-white text-red-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg">
+                  এখনই কিনুন
+                </Link>
+              </div>
+            </div>
+          </section>
+      )}
 
       {/* Featured Products */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
