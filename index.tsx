@@ -12,9 +12,7 @@ const root = ReactDOM.createRoot(rootElement);
 
 try {
   root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
+    <App />
   );
 } catch (error) {
   console.error("Application crashed:", error);
