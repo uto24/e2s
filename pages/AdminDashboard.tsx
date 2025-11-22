@@ -1,165 +1,187 @@
-import React, { useState } from 'react';
-import { MOCK_ORDERS, PRODUCTS, CURRENCY } from '../constants';
-import { Package, Users, DollarSign, Plus, Search, Edit, Trash } from 'lucide-react';
-import { useAuth } from '../services/store';
-import { Navigate } from 'react-router-dom';
-import { UserRole } from '../types';
+import React from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  AreaChart, Area, PieChart, Pie, Cell 
+} from 'recharts';
+import { 
+  TrendingUp, Users, ShoppingBag, DollarSign, 
+  ArrowUpRight, ArrowDownRight, AlertCircle 
+} from 'lucide-react';
+import { CURRENCY, MOCK_ORDERS, AFFILIATE_STATS, PRODUCTS } from '../constants';
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
+  // Calculate real stats from mock data
+  const totalRevenue = MOCK_ORDERS.reduce((acc, order) => acc + order.total, 0);
+  const totalOrders = MOCK_ORDERS.length;
+  const lowStockProducts = PRODUCTS.filter(p => p.stock < 10);
+  
+  const data = [
+    { name: 'Jan', uv: 4000, pv: 2400, amt: 2400 },
+    { name: 'Feb', uv: 3000, pv: 1398, amt: 2210 },
+    { name: 'Mar', uv: 2000, pv: 9800, amt: 2290 },
+    { name: 'Apr', uv: 2780, pv: 3908, amt: 2000 },
+    { name: 'May', uv: 1890, pv: 4800, amt: 2181 },
+    { name: 'Jun', uv: 2390, pv: 3800, amt: 2500 },
+    { name: 'Jul', uv: 3490, pv: 4300, amt: 2100 },
+  ];
 
-  if (!user || user.role !== UserRole.ADMIN) {
-    return <Navigate to="/" replace />;
-  }
+  const pieData = [
+    { name: 'Electronics', value: 400 },
+    { name: 'Fashion', value: 300 },
+    { name: 'Home', value: 300 },
+    { name: 'Beauty', value: 200 },
+  ];
+  const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EC4899'];
 
-  const filteredProducts = PRODUCTS.filter(p => 
-    p.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+        </div>
+        <div className={`p-3 rounded-lg bg-${color}-50 text-${color}-600`}>
+          <Icon size={24} />
+        </div>
+      </div>
+      <div className="mt-4 flex items-center text-sm">
+        {trend > 0 ? (
+          <span className="text-green-600 flex items-center font-medium">
+            <ArrowUpRight size={16} className="mr-1" /> {trend}%
+          </span>
+        ) : (
+          <span className="text-red-600 flex items-center font-medium">
+            <ArrowDownRight size={16} className="mr-1" /> {Math.abs(trend)}%
+          </span>
+        )}
+        <span className="text-gray-400 ml-2">vs last month</span>
+      </div>
+    </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sidebar (Hidden on mobile for simplicity in this demo, assuming top nav in Layout handles mobile) */}
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-indigo-700 transition-colors">
-            <Plus size={18} className="mr-2" /> Add Product
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+        <div className="mt-4 md:mt-0 flex space-x-3">
+          <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Export Report
+          </button>
+          <button className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 shadow-sm">
+            + New Campaign
           </button>
         </div>
+      </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Revenue</p>
-                <h3 className="text-2xl font-bold text-gray-900">{CURRENCY}12,450.00</h3>
-              </div>
-              <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-                <DollarSign size={24} />
-              </div>
-            </div>
-            <p className="text-sm text-green-600 mt-2">+12% from last month</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Orders</p>
-                <h3 className="text-2xl font-bold text-gray-900">1,240</h3>
-              </div>
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
-                <Package size={24} />
-              </div>
-            </div>
-            <p className="text-sm text-blue-600 mt-2">+5% new orders today</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Active Affiliates</p>
-                <h3 className="text-2xl font-bold text-gray-900">45</h3>
-              </div>
-              <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
-                <Users size={24} />
-              </div>
-            </div>
-            <p className="text-sm text-purple-600 mt-2">3 pending approvals</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Total Revenue" 
+          value={`${CURRENCY}${totalRevenue.toLocaleString()}`} 
+          icon={DollarSign} 
+          color="indigo" 
+          trend={12.5} 
+        />
+        <StatCard 
+          title="Total Orders" 
+          value={totalOrders} 
+          icon={ShoppingBag} 
+          color="blue" 
+          trend={8.2} 
+        />
+        <StatCard 
+          title="Active Users" 
+          value="1,204" 
+          icon={Users} 
+          color="purple" 
+          trend={-2.4} 
+        />
+        <StatCard 
+          title="Affiliate Sales" 
+          value={`${CURRENCY}4,320`} 
+          icon={TrendingUp} 
+          color="green" 
+          trend={24.0} 
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Revenue Chart */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Revenue Analytics</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data}>
+                <defs>
+                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                <Area type="monotone" dataKey="uv" stroke="#4F46E5" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Products Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h3 className="text-lg font-bold text-gray-900">Products Inventory</h3>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-            </div>
+        {/* Sales by Category */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Sales by Category</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-500">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-700">
-                <tr>
-                  <th className="px-6 py-3">Product</th>
-                  <th className="px-6 py-3">Category</th>
-                  <th className="px-6 py-3">Price</th>
-                  <th className="px-6 py-3">Stock</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
-                      <img src={product.image} alt="" className="w-10 h-10 rounded object-cover" />
-                      {product.title}
-                    </td>
-                    <td className="px-6 py-4">{product.category}</td>
-                    <td className="px-6 py-4">{CURRENCY}{product.price.toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        product.stock > 20 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.stock} units
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900"><Edit size={18} /></button>
-                      <button className="text-red-600 hover:text-red-900"><Trash size={18} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-             <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-500">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-700">
-                <tr>
-                  <th className="px-6 py-3">Order ID</th>
-                  <th className="px-6 py-3">Customer</th>
-                  <th className="px-6 py-3">Date</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {MOCK_ORDERS.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-indigo-600">{order.id}</td>
-                    <td className="px-6 py-4">{order.customer}</td>
-                    <td className="px-6 py-4">{order.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                        order.status === 'processing' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{CURRENCY}{order.total.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 space-y-3">
+            {pieData.map((entry, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                  <span className="text-gray-600">{entry.name}</span>
+                </div>
+                <span className="font-medium text-gray-900">{((entry.value / 1200) * 100).toFixed(0)}%</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Low Stock Alert */}
+      {lowStockProducts.length > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Low Stock Alert</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>The following items are running low on stock: {lowStockProducts.map(p => p.title).join(', ')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
