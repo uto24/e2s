@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, CartProvider, ShopProvider } from './services/store';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
@@ -8,6 +8,7 @@ import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 import AffiliateDashboard from './pages/AffiliateDashboard';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
@@ -64,6 +65,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
               <Route path="/cart" element={<Layout><Cart /></Layout>} />
+              <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
               <Route path="/affiliate" element={<Layout><AffiliateDashboard /></Layout>} />
               <Route path="/profile" element={<Layout><Profile /></Layout>} />
               

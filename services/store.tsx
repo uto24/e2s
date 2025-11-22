@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem, User, UserRole, AppSettings, Review } from '../types';
-import { DEFAULT_SETTINGS } from '../constants';
+import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
+import { DEFAULT_SETTINGS, MOCK_ORDERS } from '../constants';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -22,6 +22,7 @@ interface ShopContextType {
   deleteProduct: (id: string) => void;
   updateSettings: (newSettings: AppSettings) => void;
   addReview: (productId: string, review: Review) => void;
+  placeOrder: (order: Order) => Promise<void>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -29,6 +30,8 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  // Mock orders state for this session
+  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
 
   // Load data from localStorage
   useEffect(() => {
@@ -92,8 +95,16 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
+  const placeOrder = async (order: Order) => {
+      // In a real app, this would send data to backend
+      console.log("Order Placed:", order);
+      setOrders(prev => [order, ...prev]);
+      // MOCK_ORDERS.unshift(order); // Update mock
+      return Promise.resolve();
+  };
+
   return (
-    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview }}>
+    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder }}>
       {children}
     </ShopContext.Provider>
   );

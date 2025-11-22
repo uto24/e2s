@@ -75,6 +75,14 @@ export interface AffiliateStat {
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
 
+export interface ShippingAddress {
+  name: string;
+  phone: string;
+  address: string;
+  city?: string;
+  note?: string;
+}
+
 export interface Order {
   id: string;
   customer: string;
@@ -83,7 +91,10 @@ export interface Order {
   status: OrderStatus;
   date: string;
   items: number;
-  paymentMethod: string;
+  paymentMethod: 'cod' | 'bkash' | 'nagad' | 'rocket';
+  shippingAddress?: ShippingAddress;
+  transactionId?: string;
+  senderNumber?: string;
 }
 
 export type WithdrawStatus = 'pending' | 'approved' | 'rejected' | 'paid';

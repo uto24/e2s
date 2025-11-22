@@ -67,9 +67,13 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleCopyLink = () => {
+    // Using window.location.href which now works correctly with HashRouter for sharing
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => {
+      setCopied(false);
+      setShowShareMenu(false);
+    }, 2000);
   };
 
   const handleShareSocial = (platform: 'facebook' | 'whatsapp') => {
@@ -224,15 +228,16 @@ const ProductDetail: React.FC = () => {
                     </button>
                     
                     {showShareMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 animate-fade-in overflow-hidden">
-                            <button onClick={handleCopyLink} className="w-full text-left px-4 py-3 flex items-center hover:bg-gray-50 text-sm text-gray-700">
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-20 animate-fade-in overflow-hidden">
+                            <div className="px-4 py-2 bg-gray-50 text-xs text-gray-500 border-b border-gray-100 font-medium">শেয়ার করুন</div>
+                            <button onClick={handleCopyLink} className="w-full text-left px-4 py-3 flex items-center hover:bg-gray-50 text-sm text-gray-700 transition-colors">
                                 {copied ? <Check size={16} className="mr-3 text-green-600"/> : <LinkIcon size={16} className="mr-3 text-gray-500"/>}
-                                {copied ? 'লিংক কপি হয়েছে' : 'লিংক কপি করুন'}
+                                {copied ? 'লিংক কপি হয়েছে!' : 'লিংক কপি করুন'}
                             </button>
-                            <button onClick={() => handleShareSocial('facebook')} className="w-full text-left px-4 py-3 flex items-center hover:bg-blue-50 text-sm text-gray-700">
+                            <button onClick={() => handleShareSocial('facebook')} className="w-full text-left px-4 py-3 flex items-center hover:bg-blue-50 text-sm text-gray-700 transition-colors">
                                 <Facebook size={16} className="mr-3 text-blue-600"/> ফেসবুকে শেয়ার
                             </button>
-                            <button onClick={() => handleShareSocial('whatsapp')} className="w-full text-left px-4 py-3 flex items-center hover:bg-green-50 text-sm text-gray-700">
+                            <button onClick={() => handleShareSocial('whatsapp')} className="w-full text-left px-4 py-3 flex items-center hover:bg-green-50 text-sm text-gray-700 transition-colors">
                                 <MessageCircle size={16} className="mr-3 text-green-500"/> হোয়াটসঅ্যাপ
                             </button>
                         </div>

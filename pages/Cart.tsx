@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Trash2, Plus, Minus, ArrowRight, MapPin, CreditCard, AlertTriangle, ShoppingBag } from 'lucide-react';
 import { useCart, useShop } from '../services/store';
 import { CURRENCY } from '../constants';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Cart: React.FC = () => {
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
   const { settings } = useShop();
+  const navigate = useNavigate();
   
   // Shipping State (Default to inside city)
   const [shippingLocation, setShippingLocation] = useState<'inside' | 'outside'>('inside');
@@ -197,6 +198,7 @@ const Cart: React.FC = () => {
 
             <div className="mt-8">
               <button
+                onClick={() => navigate('/checkout', { state: { shippingLocation } })}
                 className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-full shadow-lg shadow-green-200 text-base font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all transform hover:-translate-y-1"
               >
                 অর্ডার কনফার্ম করুন <ArrowRight size={20} className="ml-2" />
