@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged, 
+  updateProfile,
+  updatePassword,
   User as FirebaseUser 
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
@@ -41,13 +43,11 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        // Merge with default to ensure new fields exist
         setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) { console.error("Failed to parse settings", e); }
     }
   }, []);
 
-  // Save to localStorage on change
   useEffect(() => {
     localStorage.setItem('e2s_products', JSON.stringify(products));
   }, [products]);
@@ -92,20 +92,19 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  updateUserProfile: (data: { name?: string; password?: string }) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Hardcoded Admin Email for demonstration
 const ADMIN_EMAIL = "admin@e2s.com";
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper to map Firebase User to our App User
   const mapUser = (fbUser: FirebaseUser): User => {
     const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
     
@@ -114,8 +113,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
       email: fbUser.email || '',
       role: role,
-      affiliate_id: fbUser.uid.substring(0, 8), // Generate a simple affiliate ID from UID
-      balance: 0, // Initial balance
+      affiliate_id: fbUser.uid.substring(0, 8),
+      balance: 0,
       avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`
     };
   };
@@ -153,10 +152,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const registerWithEmail = async (email: string, pass: string, name: string) => {
     try {
-      // Note: In a real app, you would updateProfile to set displayName immediately
-      await createUserWithEmailAndPassword(auth, email, pass);
+      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: name });
+        setUser(mapUser({ ...auth.currentUser, displayName: name }));
+      }
     } catch (error) {
       console.error("Registration failed", error);
+      throw error;
+    }
+  };
+
+  const updateUserProfile = async (data: { name?: string; password?: string }) => {
+    if (!auth.currentUser) throw new Error("No user logged in");
+    
+    try {
+      if (data.name) {
+        await updateProfile(auth.currentUser, { displayName: data.name });
+      }
+      if (data.password) {
+        await updatePassword(auth.currentUser, data.password);
+      }
+      
+      // Update local state
+      setUser(prev => prev ? { ...prev, name: data.name || prev.name } : null);
+    } catch (error) {
+      console.error("Profile update failed", error);
       throw error;
     }
   };
@@ -175,7 +196,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       loading, 
       loginWithGoogle, 
       loginWithEmail, 
-      registerWithEmail, 
+      registerWithEmail,
+      updateUserProfile,
       logout, 
       isAuthenticated: !!user 
     }}>
@@ -206,7 +228,6 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Load cart from local storage
   useEffect(() => {
     const savedCart = localStorage.getItem('e2s_cart');
     if (savedCart) {
@@ -218,14 +239,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Save cart to local storage
   useEffect(() => {
     localStorage.setItem('e2s_cart', JSON.stringify(items));
   }, [items]);
 
   const addToCart = (product: Product, quantity = 1, size?: string, color?: string) => {
     setItems(prev => {
-      // Find if item with same ID and same variants exists
       const existingIndex = prev.findIndex(item => 
         item.id === product.id && 
         item.selectedSize === size && 
@@ -233,13 +252,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
 
       if (existingIndex > -1) {
-        // Update existing item
         const newItems = [...prev];
         newItems[existingIndex].quantity += quantity;
         return newItems;
       }
       
-      // Add new item
       const newItem: CartItem = {
         ...product,
         quantity,

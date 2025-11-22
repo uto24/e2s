@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import AffiliateDashboard from './pages/AffiliateDashboard';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -64,11 +65,11 @@ const App: React.FC = () => {
               <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
               <Route path="/cart" element={<Layout><Cart /></Layout>} />
               <Route path="/affiliate" element={<Layout><AffiliateDashboard /></Layout>} />
+              <Route path="/profile" element={<Layout><Profile /></Layout>} />
               
               {/* Placeholders */}
               <Route path="/categories" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Categories</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
               <Route path="/search" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Search</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
-              <Route path="/profile" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Profile</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
               
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

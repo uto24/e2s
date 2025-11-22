@@ -1,12 +1,12 @@
 import React from 'react';
-import { ArrowRight, Zap, ShieldCheck, Truck, Star } from 'lucide-react';
+import { ArrowRight, Zap, ShieldCheck, Truck, Star, Clock, Mail, Gift, Smartphone, Shirt, Home as HomeIcon, Sparkles } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useShop } from '../services/store';
 import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { products, settings } = useShop();
-  const featuredProducts = products.slice(0, 8); // Show more products
+  const featuredProducts = products.slice(0, 8);
 
   if (settings.maintenanceMode) {
     return (
@@ -20,71 +20,122 @@ const Home: React.FC = () => {
     );
   }
 
+  const categories = [
+    { name: "ইলেকট্রনিক্স", icon: Smartphone, color: "bg-blue-100 text-blue-600" },
+    { name: "ফ্যাশন", icon: Shirt, color: "bg-pink-100 text-pink-600" },
+    { name: "হোম ও লিভিং", icon: HomeIcon, color: "bg-green-100 text-green-600" },
+    { name: "বিউটি", icon: Sparkles, color: "bg-purple-100 text-purple-600" }
+  ];
+
   return (
     <div className="animate-fade-in overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-red-900 to-red-700 text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white overflow-hidden min-h-[600px] flex items-center">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-black opacity-40"></div>
+          <div className="absolute inset-0 bg-black opacity-30 z-10"></div>
           <img 
-            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
+            src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
             alt="Hero Background" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover animate-pulse-soft"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-40">
+        
+        {/* Decorative Circles */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-500 opacity-10 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
+
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="md:w-3/4 lg:w-2/3 animate-slide-up">
-            <span className="inline-block py-1 px-4 rounded-full bg-red-600 bg-opacity-90 border border-red-400 text-white text-sm font-bold mb-6 shadow-lg">
-              নতুন কালেকশন ২০২৫
-            </span>
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-              সেরা মানের পণ্য <br/> সাশ্রয়ী দামে।
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-bold mb-8 shadow-lg">
+              <Sparkles size={16} className="mr-2 text-yellow-400" /> নতুন কালেকশন ২০২৫
+            </div>
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight drop-shadow-lg">
+              সেরা মানের পণ্য, <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">সাশ্রয়ী দামে।</span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-100 mb-8 max-w-lg font-medium">
+            <p className="text-lg md:text-2xl text-gray-200 mb-10 max-w-2xl font-medium leading-relaxed shadow-black">
               ফ্যাশন, ইলেকট্রনিক্স এবং নিত্যপ্রয়োজনীয় সব পণ্য কিনুন নিশ্চিন্তে। আমাদের এফিলিয়েট প্রোগ্রামে যোগ দিয়ে আয় করুন ঘরে বসেই।
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 bg-red-600 text-white rounded-full font-bold hover:bg-red-700 transition-all duration-300 shadow-lg shadow-red-900/50 flex items-center justify-center transform hover:-translate-y-1">
-                কেনাকাটা শুরু করুন <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <Link to="/affiliate" className="px-8 py-4 bg-white text-red-900 rounded-full font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg flex items-center justify-center transform hover:-translate-y-1">
+              <Link to="/categories" className="px-10 py-4 bg-red-600 text-white rounded-full font-bold hover:bg-red-700 transition-all duration-300 shadow-lg shadow-red-900/50 flex items-center justify-center transform hover:scale-105">
+                কেনাকাটা করুন <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link to="/affiliate" className="px-10 py-4 bg-white text-red-900 rounded-full font-bold hover:bg-gray-50 transition-all duration-300 shadow-lg flex items-center justify-center transform hover:scale-105">
                 এফিলিয়েট হোন
               </Link>
             </div>
           </div>
         </div>
-        
-        {/* Curved Bottom Shape */}
-        <div className="absolute bottom-0 left-0 right-0">
-           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-             <path d="M0 120L1440 120L1440 0C1440 0 1082.5 97 720 97C357.5 97 0 0 0 0L0 120Z" fill="#f9fafb"/>
-           </svg>
+      </section>
+
+      {/* Features Strip */}
+      <div className="bg-white border-b border-gray-100 relative z-30 -mt-8 mx-4 md:mx-8 rounded-xl shadow-lg lg:max-w-7xl lg:mx-auto p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="flex items-center space-x-4 hover:bg-red-50 p-4 rounded-lg transition-colors cursor-pointer">
+          <div className="bg-red-100 p-3 rounded-full text-red-600"><Truck size={24} /></div>
+          <div>
+            <h3 className="font-bold text-gray-900">দ্রুত ডেলিভারি</h3>
+            <p className="text-sm text-gray-500">২৪-৪৮ ঘন্টার মধ্যে ডেলিভারি</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4 hover:bg-red-50 p-4 rounded-lg transition-colors cursor-pointer">
+           <div className="bg-red-100 p-3 rounded-full text-red-600"><ShieldCheck size={24} /></div>
+          <div>
+            <h3 className="font-bold text-gray-900">নিরাপদ পেমেন্ট</h3>
+            <p className="text-sm text-gray-500">ক্যাশ অন ডেলিভারি সুবিধা</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4 hover:bg-red-50 p-4 rounded-lg transition-colors cursor-pointer">
+           <div className="bg-red-100 p-3 rounded-full text-red-600"><Gift size={24} /></div>
+          <div>
+            <h3 className="font-bold text-gray-900">সেরা অফার</h3>
+            <p className="text-sm text-gray-500">আকর্ষণীয় ডিসকাউন্ট ও ডিল</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Shop By Category */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">জনপ্রিয় ক্যাটাগরি</h2>
+            <p className="text-gray-500 mt-2">আপনার পছন্দের পণ্য খুঁজে নিন</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {categories.map((cat, idx) => (
+              <Link to="/categories" key={idx} className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center border border-gray-100 hover:border-red-200">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${cat.color}`}>
+                  <cat.icon size={32} />
+                </div>
+                <h3 className="font-bold text-lg text-gray-800 group-hover:text-red-600 transition-colors">{cat.name}</h3>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="group bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
-              <Truck size={24} />
-            </div>
-            <h3 className="font-bold text-xl text-gray-900 mb-2">দ্রুত ডেলিভারি</h3>
-            <p className="text-gray-600">সারা বাংলাদেশে দ্রুততম সময়ে হোম ডেলিভারি সুবিধা।</p>
+      {/* Flash Sale Banner */}
+      <section className="py-10 bg-red-600 my-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-white">
+          <div className="flex items-center mb-6 md:mb-0">
+             <div className="bg-white/20 p-4 rounded-xl mr-6 backdrop-blur-sm animate-pulse">
+               <Clock size={40} className="text-white" />
+             </div>
+             <div>
+               <h2 className="text-3xl font-bold">ফ্ল্যাশ সেল!</h2>
+               <p className="text-red-100 text-lg">সীমিত সময়ের জন্য বিশেষ মূল্যছাড়</p>
+             </div>
           </div>
-          <div className="group bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
-              <ShieldCheck size={24} />
-            </div>
-            <h3 className="font-bold text-xl text-gray-900 mb-2">নিরাপদ পেমেন্ট</h3>
-            <p className="text-gray-600">বিকাশ, নগদ এবং ক্যাশ অন ডেলিভারির মাধ্যমে নিরাপদ পেমেন্ট।</p>
+          <div className="flex space-x-4 text-center">
+            {['02', '14', '35'].map((time, i) => (
+              <div key={i} className="bg-white text-red-600 rounded-lg p-3 min-w-[70px]">
+                <span className="text-3xl font-bold block">{time}</span>
+                <span className="text-xs font-bold uppercase">{['ঘন্টা', 'মিনিট', 'সেকেন্ড'][i]}</span>
+              </div>
+            ))}
           </div>
-          <div className="group bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
-              <Zap size={24} />
-            </div>
-            <h3 className="font-bold text-xl text-gray-900 mb-2">সেরা অফার</h3>
-            <p className="text-gray-600">নিয়মিত ডিসকাউন্ট এবং ধামাকা অফার উপভোগ করুন।</p>
+          <div className="mt-6 md:mt-0">
+            <Link to="/categories" className="bg-white text-red-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg">
+              এখনই কিনুন
+            </Link>
           </div>
         </div>
       </section>
@@ -93,8 +144,8 @@ const Home: React.FC = () => {
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 border-l-4 border-red-600 pl-3">জনপ্রিয় পণ্য</h2>
-            <p className="text-gray-500 mt-2 pl-4">আপনার পছন্দের সব কালেকশন</p>
+            <h2 className="text-3xl font-bold text-gray-900 border-l-4 border-red-600 pl-3">ট্রেন্ডিং পণ্য</h2>
+            <p className="text-gray-500 mt-2 pl-4">সবার পছন্দের তালিকায় শীর্ষে</p>
           </div>
           <Link to="/categories" className="hidden md:flex items-center text-red-600 font-semibold hover:text-red-800 transition-colors bg-red-50 px-4 py-2 rounded-full">
             সব দেখুন <ArrowRight size={16} className="ml-1" />
@@ -121,9 +172,28 @@ const Home: React.FC = () => {
           </Link>
         </div>
       </section>
+
+      {/* Newsletter */}
+      <section className="bg-gray-900 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Mail size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-3xl font-bold text-white mb-4">আমাদের নিউজলেটার সাবস্ক্রাইব করুন</h2>
+          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">নতুন পণ্য এবং অফার সম্পর্কে সবার আগে জানতে আমাদের সাথে যুক্ত থাকুন।</p>
+          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+            <input 
+              type="email" 
+              placeholder="আপনার ইমেইল অ্যাড্রেস" 
+              className="flex-1 px-5 py-3 rounded-full bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-red-500"
+            />
+            <button type="button" className="px-8 py-3 bg-red-600 text-white rounded-full font-bold hover:bg-red-700 transition-colors">
+              সাবস্ক্রাইব
+            </button>
+          </form>
+        </div>
+      </section>
       
       {/* Affiliate CTA */}
-      <section className="relative bg-red-900 text-white py-20 px-4 overflow-hidden">
+      <section className="relative bg-gradient-to-r from-red-600 to-pink-600 text-white py-20 px-4 overflow-hidden">
          <div className="absolute top-0 left-0 w-full h-full opacity-10">
             <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                 <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -132,13 +202,13 @@ const Home: React.FC = () => {
                 <rect width="100%" height="100%" fill="url(#dots)"/>
             </svg>
          </div>
-        <div className="relative max-w-4xl mx-auto text-center">
+        <div className="relative max-w-4xl mx-auto text-center animate-slide-up">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">আমাদের সাথে আয় করুন</h2>
-          <p className="text-red-100 mb-10 text-lg leading-relaxed">
+          <p className="text-white/90 mb-10 text-lg leading-relaxed max-w-2xl mx-auto">
             আমাদের এফিলিয়েট প্রোগ্রামে জয়েন করুন এবং প্রতিটি সেলে কমিশন জিতে নিন। 
-            হাজারো মানুষ আমাদের সাথে কাজ করে স্বাবলম্বী হচ্ছেন।
+            হাজারো মানুষ আমাদের সাথে কাজ করে স্বাবলম্বী হচ্ছেন। কোনো বিনিয়োগ ছাড়াই শুরু করুন।
           </p>
-          <Link to="/affiliate" className="inline-block px-10 py-4 bg-white text-red-700 rounded-full font-bold text-lg hover:bg-red-50 transition-all transform hover:scale-105 shadow-2xl">
+          <Link to="/affiliate" className="inline-block px-10 py-4 bg-white text-red-600 rounded-full font-bold text-lg hover:bg-gray-50 transition-all transform hover:scale-105 shadow-2xl">
             আজই জয়েন করুন
           </Link>
         </div>
