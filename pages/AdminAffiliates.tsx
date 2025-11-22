@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, X, DollarSign, UserCheck, AlertCircle } from 'lucide-react';
+import { Check, X, DollarSign, UserCheck, AlertCircle, Inbox } from 'lucide-react';
 import { MOCK_WITHDRAWS, CURRENCY } from '../constants';
 
 const AdminAffiliates: React.FC = () => {
@@ -12,8 +12,8 @@ const AdminAffiliates: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <div className="border-b border-gray-200 overflow-x-auto">
+        <nav className="-mb-px flex space-x-8 min-w-max">
           <button
             onClick={() => setActiveTab('withdraws')}
             className={`${
@@ -55,43 +55,54 @@ const AdminAffiliates: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {MOCK_WITHDRAWS.map((request) => (
-                  <tr key={request.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{request.affiliateName}</div>
-                      <div className="text-xs text-gray-500">{request.affiliateEmail}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{CURRENCY}{request.amount.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 capitalize">{request.method}</div>
-                      <div className="text-xs text-gray-500">{request.accountDetails}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          request.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          request.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                        {request.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {request.status === 'pending' ? (
-                        <div className="flex justify-end space-x-2">
-                          <button className="p-1 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Approve & Pay">
-                            <Check size={18} />
-                          </button>
-                          <button className="p-1 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Reject">
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">Completed</span>
-                      )}
+                {MOCK_WITHDRAWS.length > 0 ? (
+                  MOCK_WITHDRAWS.map((request) => (
+                    <tr key={request.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{request.affiliateName}</div>
+                        <div className="text-xs text-gray-500">{request.affiliateEmail}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{CURRENCY}{request.amount.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 capitalize">{request.method}</div>
+                        <div className="text-xs text-gray-500">{request.accountDetails}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            request.status === 'paid' ? 'bg-green-100 text-green-800' :
+                            request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            request.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                          {request.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {request.status === 'pending' ? (
+                          <div className="flex justify-end space-x-2">
+                            <button className="p-1 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Approve & Pay">
+                              <Check size={18} />
+                            </button>
+                            <button className="p-1 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Reject">
+                              <X size={18} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Completed</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center justify-center">
+                        <Inbox size={32} className="text-gray-300 mb-2" />
+                        <p>No withdrawal requests pending.</p>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -102,7 +113,7 @@ const AdminAffiliates: React.FC = () => {
         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
           <AlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">Affiliates List</h3>
-          <p className="text-gray-500">Functionality to view and manage all registered affiliates.</p>
+          <p className="text-gray-500">No affiliates registered yet.</p>
         </div>
       )}
     </div>

@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Minus, Plus, ShoppingCart, Share2, Shield } from 'lucide-react';
-import { PRODUCTS, CURRENCY } from '../constants';
-import { useCart } from '../services/store';
+import { CURRENCY } from '../constants';
+import { useCart, useShop } from '../services/store';
 import { Product } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { products } = useShop();
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
-    const found = PRODUCTS.find(p => p.id === id);
-    if (found) {
-      setProduct(found);
-    } else {
-      navigate('/');
+    if (products.length > 0) {
+      const found = products.find(p => p.id === id);
+      if (found) {
+        setProduct(found);
+      } else {
+        // Only redirect if products are loaded but not found
+        navigate('/');
+      }
     }
     window.scrollTo(0, 0);
-  }, [id, navigate]);
+  }, [id, navigate, products]);
 
   if (!product) return <div className="flex justify-center items-center h-96"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>;
 

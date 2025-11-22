@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem, User, UserRole } from '../types';
+import { Product, CartItem, User, UserRole, AppSettings } from '../types';
+import { DEFAULT_SETTINGS } from '../constants';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -9,6 +10,78 @@ import {
   User as FirebaseUser 
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
+
+// --- Shop Context ---
+interface ShopContextType {
+  products: Product[];
+  settings: AppSettings;
+  addProduct: (product: Product) => void;
+  updateProduct: (id: string, data: Partial<Product>) => void;
+  deleteProduct: (id: string) => void;
+  updateSettings: (newSettings: AppSettings) => void;
+}
+
+const ShopContext = createContext<ShopContextType | undefined>(undefined);
+
+export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+
+  // Load data from localStorage
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('e2s_products');
+    const savedSettings = localStorage.getItem('e2s_settings');
+    
+    if (savedProducts) {
+      try {
+        setProducts(JSON.parse(savedProducts));
+      } catch (e) { console.error("Failed to parse products", e); }
+    }
+    
+    if (savedSettings) {
+      try {
+        setSettings(JSON.parse(savedSettings));
+      } catch (e) { console.error("Failed to parse settings", e); }
+    }
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('e2s_products', JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem('e2s_settings', JSON.stringify(settings));
+  }, [settings]);
+
+  const addProduct = (product: Product) => {
+    setProducts(prev => [product, ...prev]);
+  };
+
+  const updateProduct = (id: string, data: Partial<Product>) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+  };
+
+  const deleteProduct = (id: string) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const updateSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+  };
+
+  return (
+    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings }}>
+      {children}
+    </ShopContext.Provider>
+  );
+};
+
+export const useShop = () => {
+  const context = useContext(ShopContext);
+  if (!context) throw new Error('useShop must be used within ShopProvider');
+  return context;
+};
 
 // --- Auth Context ---
 interface AuthContextType {

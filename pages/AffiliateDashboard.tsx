@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Copy, DollarSign, MousePointer, TrendingUp, Wallet, ArrowRight } from 'lucide-react';
-import { AFFILIATE_STATS, CURRENCY, MOCK_USER } from '../constants';
+import { AFFILIATE_STATS, CURRENCY } from '../constants';
 import { useAuth } from '../services/store';
 import { Navigate } from 'react-router-dom';
 import { UserRole } from '../types';
@@ -103,7 +103,9 @@ const AffiliateDashboard: React.FC = () => {
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Conversion Rate</dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {((AFFILIATE_STATS.reduce((a, b) => a + b.conversions, 0) / totalClicks) * 100).toFixed(1)}%
+                    {totalClicks > 0 
+                      ? ((AFFILIATE_STATS.reduce((a, b) => a + b.conversions, 0) / totalClicks) * 100).toFixed(1) 
+                      : 0}%
                   </dd>
                 </dl>
               </div>
@@ -144,33 +146,37 @@ const AffiliateDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Earnings History (Last 7 Days)</h3>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={AFFILIATE_STATS}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} />
-                <YAxis />
-                <Tooltip formatter={(value) => [`${CURRENCY}${value}`, 'Earnings']} />
-                <Bar dataKey="earnings" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-72 w-full flex items-center justify-center bg-gray-50 rounded-lg text-gray-400">
+             {AFFILIATE_STATS.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={AFFILIATE_STATS}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${CURRENCY}${value}`, 'Earnings']} />
+                    <Bar dataKey="earnings" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+             ) : <p>No earnings data</p>}
           </div>
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Clicks vs Conversions</h3>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={AFFILIATE_STATS}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Line yAxisId="left" type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} />
-                <Line yAxisId="right" type="monotone" dataKey="conversions" stroke="#10b981" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-72 w-full flex items-center justify-center bg-gray-50 rounded-lg text-gray-400">
+             {AFFILIATE_STATS.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={AFFILIATE_STATS}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Line yAxisId="left" type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} />
+                    <Line yAxisId="right" type="monotone" dataKey="conversions" stroke="#10b981" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+             ) : <p>No traffic data</p>}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Download, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
+import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle } from 'lucide-react';
 import { MOCK_ORDERS, CURRENCY } from '../constants';
 import { OrderStatus } from '../types';
 
@@ -30,7 +30,7 @@ const AdminOrders: React.FC = () => {
       <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
 
       {/* Stats Filters */}
-      <div className="flex space-x-2 overflow-x-auto pb-2">
+      <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
         {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (
           <button
             key={status}
@@ -61,41 +61,47 @@ const AdminOrders: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">#{order.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">{order.customer}</span>
-                      <span className="text-xs text-gray-500">{order.email}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(order.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{CURRENCY}{order.total.toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.paymentMethod}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button className="text-gray-400 hover:text-indigo-600 p-1">
-                        <Eye size={18} />
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600 p-1">
-                        <Download size={18} />
-                      </button>
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">#{order.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">{order.customer}</span>
+                        <span className="text-xs text-gray-500">{order.email}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.date}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(order.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{CURRENCY}{order.total.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.paymentMethod}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button className="text-gray-400 hover:text-indigo-600 p-1" title="View Details">
+                          <Eye size={18} />
+                        </button>
+                        <button className="text-gray-400 hover:text-gray-600 p-1" title="Download Invoice">
+                          <Download size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <AlertTriangle size={32} className="text-gray-300 mb-2" />
+                      <p>No orders found matching this filter.</p>
                     </div>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
-        {filteredOrders.length === 0 && (
-          <div className="p-12 text-center text-gray-500">
-            No orders found matching this filter.
-          </div>
-        )}
       </div>
     </div>
   );

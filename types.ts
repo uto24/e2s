@@ -68,7 +68,7 @@ export interface WithdrawRequest {
   affiliateName: string;
   affiliateEmail: string;
   amount: number;
-  method: 'bank' | 'bkash' | 'paypal';
+  method: 'bank' | 'paypal' | 'other';
   accountDetails: string;
   status: WithdrawStatus;
   date: string;

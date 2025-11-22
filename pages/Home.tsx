@@ -1,11 +1,24 @@
 import React from 'react';
 import { ArrowRight, Zap, ShieldCheck, Truck } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { PRODUCTS } from '../constants';
+import { useShop } from '../services/store';
 import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const featuredProducts = PRODUCTS.slice(0, 4);
+  const { products, settings } = useShop();
+  const featuredProducts = products.slice(0, 4);
+
+  if (settings.maintenanceMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full text-center">
+          <Zap size={64} className="mx-auto text-indigo-600 mb-6" />
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">We'll be back soon!</h1>
+          <p className="text-gray-600">We are currently performing some scheduled maintenance. We should be back shortly.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -87,11 +100,17 @@ const Home: React.FC = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {featuredProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {featuredProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-xl">
+            <p className="text-gray-500">No products available yet. Please check back later!</p>
+          </div>
+        )}
         
         <div className="mt-8 md:hidden text-center">
            <Link to="/categories" className="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800">

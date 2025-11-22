@@ -5,32 +5,23 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, Users, ShoppingBag, DollarSign, 
-  ArrowUpRight, ArrowDownRight, AlertCircle 
+  ArrowUpRight, ArrowDownRight, AlertCircle, Inbox 
 } from 'lucide-react';
-import { CURRENCY, MOCK_ORDERS, AFFILIATE_STATS, PRODUCTS } from '../constants';
+import { CURRENCY, MOCK_ORDERS } from '../constants';
+import { useShop } from '../services/store';
 
 const AdminDashboard: React.FC = () => {
-  // Calculate real stats from mock data
+  const { products } = useShop();
+  
+  // Calculate real stats from data
   const totalRevenue = MOCK_ORDERS.reduce((acc, order) => acc + order.total, 0);
   const totalOrders = MOCK_ORDERS.length;
-  const lowStockProducts = PRODUCTS.filter(p => p.stock < 10);
+  const lowStockProducts = products.filter(p => p.stock < 10);
   
-  const data = [
-    { name: 'Jan', uv: 4000, pv: 2400, amt: 2400 },
-    { name: 'Feb', uv: 3000, pv: 1398, amt: 2210 },
-    { name: 'Mar', uv: 2000, pv: 9800, amt: 2290 },
-    { name: 'Apr', uv: 2780, pv: 3908, amt: 2000 },
-    { name: 'May', uv: 1890, pv: 4800, amt: 2181 },
-    { name: 'Jun', uv: 2390, pv: 3800, amt: 2500 },
-    { name: 'Jul', uv: 3490, pv: 4300, amt: 2100 },
-  ];
-
-  const pieData = [
-    { name: 'Electronics', value: 400 },
-    { name: 'Fashion', value: 300 },
-    { name: 'Home', value: 300 },
-    { name: 'Beauty', value: 200 },
-  ];
+  // Placeholder for real analytics data
+  const data: any[] = [];
+  const pieData: any[] = [];
+  
   const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EC4899'];
 
   const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
@@ -50,12 +41,19 @@ const AdminDashboard: React.FC = () => {
             <ArrowUpRight size={16} className="mr-1" /> {trend}%
           </span>
         ) : (
-          <span className="text-red-600 flex items-center font-medium">
-            <ArrowDownRight size={16} className="mr-1" /> {Math.abs(trend)}%
+          <span className="text-gray-500 flex items-center font-medium">
+            <ArrowUpRight size={16} className="mr-1 text-gray-300" /> 0%
           </span>
         )}
         <span className="text-gray-400 ml-2">vs last month</span>
       </div>
+    </div>
+  );
+
+  const EmptyState = ({ message }: { message: string }) => (
+    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+      <Inbox size={48} className="mb-2 opacity-20" />
+      <p>{message}</p>
     </div>
   );
 
@@ -80,28 +78,28 @@ const AdminDashboard: React.FC = () => {
           value={`${CURRENCY}${totalRevenue.toLocaleString()}`} 
           icon={DollarSign} 
           color="indigo" 
-          trend={12.5} 
+          trend={0} 
         />
         <StatCard 
           title="Total Orders" 
           value={totalOrders} 
           icon={ShoppingBag} 
           color="blue" 
-          trend={8.2} 
+          trend={0} 
         />
         <StatCard 
           title="Active Users" 
-          value="1,204" 
+          value="0" 
           icon={Users} 
           color="purple" 
-          trend={-2.4} 
+          trend={0} 
         />
         <StatCard 
           title="Affiliate Sales" 
-          value={`${CURRENCY}4,320`} 
+          value={`${CURRENCY}0`} 
           icon={TrendingUp} 
           color="green" 
-          trend={24.0} 
+          trend={0} 
         />
       </div>
 
@@ -110,59 +108,69 @@ const AdminDashboard: React.FC = () => {
         {/* Main Revenue Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Revenue Analytics</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                <Area type="monotone" dataKey="uv" stroke="#4F46E5" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-80 w-full bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            {data.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data}>
+                  <defs>
+                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  <Area type="monotone" dataKey="uv" stroke="#4F46E5" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState message="No revenue data available yet" />
+            )}
           </div>
         </div>
 
         {/* Sales by Category */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Sales by Category</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full bg-gray-50 rounded-lg border border-dashed border-gray-200 flex items-center justify-center">
+             {pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+             ) : (
+               <EmptyState message="No sales categories found" />
+             )}
           </div>
-          <div className="mt-4 space-y-3">
-            {pieData.map((entry, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                  <span className="text-gray-600">{entry.name}</span>
+          {pieData.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {pieData.map((entry, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <span className="text-gray-600">{entry.name}</span>
+                  </div>
+                  <span className="font-medium text-gray-900">{((entry.value / 1200) * 100).toFixed(0)}%</span>
                 </div>
-                <span className="font-medium text-gray-900">{((entry.value / 1200) * 100).toFixed(0)}%</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
