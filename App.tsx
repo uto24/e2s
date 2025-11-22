@@ -41,7 +41,9 @@ const App: React.FC = () => {
               <Route path="/cart" element={<Cart />} />
               <Route path="/affiliate" element={<AffiliateDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/categories" element={<div className="p-10 text-center">Categories Page (Coming Soon)</div>} />
+              <Route path="/categories" element={<div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Categories</h2><p className="text-gray-500 mt-2">Coming Soon</p></div>} />
+              <Route path="/search" element={<div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Search</h2><p className="text-gray-500 mt-2">Coming Soon</p></div>} />
+              <Route path="/profile" element={<div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Profile</h2><p className="text-gray-500 mt-2">Coming Soon</p></div>} />
             </Routes>
           </Layout>
         </Router>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, ShoppingBag, User, Home, Search, X, LogOut, LayoutDashboard, BarChart2 } from 'lucide-react';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
+import { Menu, ShoppingBag, Home, Search, User, X, LogOut, LayoutDashboard, BarChart2 } from 'lucide-react';
 import { useCart, useAuth } from '../services/store';
 import { APP_NAME } from '../constants';
 import { UserRole } from '../types';
@@ -23,12 +23,12 @@ const Navbar: React.FC = () => {
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+          <Link to="/" className="flex items-center cursor-pointer">
             <div className="flex-shrink-0 flex items-center text-indigo-600">
               <ShoppingBag className="h-8 w-8 mr-2" />
               <span className="font-bold text-xl tracking-tight">{APP_NAME}</span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex md:items-center md:space-x-8">
@@ -136,29 +136,31 @@ const Navbar: React.FC = () => {
 };
 
 const MobileNav: React.FC = () => {
-  const location = useLocation();
   const activeClass = "text-indigo-600";
   const inactiveClass = "text-gray-400 hover:text-gray-500";
 
+  const navItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/search', icon: Search, label: 'Search' },
+    { path: '/cart', icon: ShoppingBag, label: 'Cart' },
+    { path: '/profile', icon: User, label: 'Profile' },
+  ];
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 pb-safe">
+    <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 pb-4">
       <div className="flex justify-around items-center h-16">
-        <Link to="/" className={`flex flex-col items-center ${location.pathname === '/' ? activeClass : inactiveClass}`}>
-          <Home size={24} />
-          <span className="text-[10px] mt-1">Home</span>
-        </Link>
-        <Link to="/search" className={`flex flex-col items-center ${location.pathname === '/search' ? activeClass : inactiveClass}`}>
-          <Search size={24} />
-          <span className="text-[10px] mt-1">Search</span>
-        </Link>
-        <Link to="/cart" className={`flex flex-col items-center ${location.pathname === '/cart' ? activeClass : inactiveClass}`}>
-          <ShoppingBag size={24} />
-          <span className="text-[10px] mt-1">Cart</span>
-        </Link>
-        <Link to="/profile" className={`flex flex-col items-center ${location.pathname === '/profile' ? activeClass : inactiveClass}`}>
-          <User size={24} />
-          <span className="text-[10px] mt-1">Profile</span>
-        </Link>
+        {navItems.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.path}
+            className={({ isActive }) => 
+              `flex flex-col items-center w-full h-full justify-center ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <item.icon size={24} />
+            <span className="text-[10px] mt-1">{item.label}</span>
+          </NavLink>
+        ))}
       </div>
     </div>
   );
@@ -180,25 +182,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div>
             <h4 className="font-semibold mb-4">Shop</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white">New Arrivals</a></li>
-              <li><a href="#" className="hover:text-white">Best Sellers</a></li>
-              <li><a href="#" className="hover:text-white">Discount</a></li>
+              <li><Link to="/" className="hover:text-white">New Arrivals</Link></li>
+              <li><Link to="/" className="hover:text-white">Best Sellers</Link></li>
+              <li><Link to="/" className="hover:text-white">Discount</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white">About Us</a></li>
-              <li><a href="#" className="hover:text-white">Careers</a></li>
-              <li><a href="#" className="hover:text-white">Affiliates</a></li>
+              <li><Link to="/" className="hover:text-white">About Us</Link></li>
+              <li><Link to="/" className="hover:text-white">Careers</Link></li>
+              <li><Link to="/affiliate" className="hover:text-white">Affiliates</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white">Contact</a></li>
-              <li><a href="#" className="hover:text-white">FAQ</a></li>
-              <li><a href="#" className="hover:text-white">Shipping</a></li>
+              <li><Link to="/" className="hover:text-white">Contact</Link></li>
+              <li><Link to="/" className="hover:text-white">FAQ</Link></li>
+              <li><Link to="/" className="hover:text-white">Shipping</Link></li>
             </ul>
           </div>
         </div>
