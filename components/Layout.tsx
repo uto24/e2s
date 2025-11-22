@@ -7,18 +7,9 @@ import { UserRole } from '../types';
 
 const Navbar: React.FC = () => {
   const { itemCount } = useCart();
-  const { user, logout, login } = useAuth();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const handleLogin = (role: UserRole) => {
-    login(role);
-    setIsMenuOpen(false);
-    if(role === UserRole.ADMIN) navigate('/admin');
-    else if(role === UserRole.AFFILIATE) navigate('/affiliate');
-    else navigate('/');
-  };
-
+  
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,7 +57,8 @@ const Navbar: React.FC = () => {
                   </button>
                   <div className="absolute right-0 w-48 mt-2 origin-top-right bg-white border border-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="py-1">
-                      <button onClick={logout} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">{user.email}</div>
+                      <button onClick={() => logout()} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         <LogOut size={16} className="mr-2" />
                         Sign out
                       </button>
@@ -74,12 +66,12 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <button 
-                  onClick={() => handleLogin(UserRole.USER)} 
+                <Link 
+                  to="/login" 
                   className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Sign In
-                </button>
+                </Link>
               )}
             </div>
           </div>
@@ -117,16 +109,12 @@ const Navbar: React.FC = () => {
             )}
             
             {!user ? (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Demo Login</p>
-                <div className="grid grid-cols-2 gap-2 px-2">
-                  <button onClick={() => handleLogin(UserRole.USER)} className="w-full text-center px-3 py-2 rounded border text-sm font-medium hover:bg-gray-50">User</button>
-                  <button onClick={() => handleLogin(UserRole.AFFILIATE)} className="w-full text-center px-3 py-2 rounded border text-sm font-medium hover:bg-gray-50">Affiliate</button>
-                  <button onClick={() => handleLogin(UserRole.ADMIN)} className="w-full text-center px-3 py-2 rounded border text-sm font-medium hover:bg-gray-50">Admin</button>
-                </div>
-              </div>
+               <Link to="/login" className="block w-full text-center px-3 py-2 rounded border text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700">Sign In / Register</Link>
             ) : (
-              <button onClick={logout} className="block w-full text-left px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50">Sign out</button>
+              <>
+                <div className="px-3 py-2 text-sm text-gray-500">Signed in as {user.email}</div>
+                <button onClick={() => logout()} className="block w-full text-left px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50">Sign out</button>
+              </>
             )}
           </div>
         </div>

@@ -1,31 +1,109 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, User, UserRole } from '../types';
-import { MOCK_USER } from '../constants';
+import { 
+  signInWithPopup, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  User as FirebaseUser 
+} from 'firebase/auth';
+import { auth, googleProvider } from './firebase';
 
 // --- Auth Context ---
 interface AuthContextType {
   user: User | null;
-  login: (role: UserRole) => void;
-  logout: () => void;
+  loading: boolean;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Hardcoded Admin Email for demonstration
+const ADMIN_EMAIL = "admin@e2s.com";
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (role: UserRole) => {
-    // Simulate API login
-    setUser({ ...MOCK_USER, role });
+  // Helper to map Firebase User to our App User
+  const mapUser = (fbUser: FirebaseUser): User => {
+    const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
+    
+    return {
+      uid: fbUser.uid,
+      name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
+      email: fbUser.email || '',
+      role: role,
+      affiliate_id: fbUser.uid.substring(0, 8), // Generate a simple affiliate ID from UID
+      balance: 0, // Initial balance
+      avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`
+    };
   };
 
-  const logout = () => {
-    setUser(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(mapUser(currentUser));
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Google login failed", error);
+      throw error;
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error("Email login failed", error);
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (email: string, pass: string, name: string) => {
+    try {
+      // Note: In a real app, you would updateProfile to set displayName immediately
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error("Registration failed", error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      loginWithGoogle, 
+      loginWithEmail, 
+      registerWithEmail, 
+      logout, 
+      isAuthenticated: !!user 
+    }}>
       {children}
     </AuthContext.Provider>
   );
