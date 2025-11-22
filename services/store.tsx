@@ -16,6 +16,7 @@ import { auth, googleProvider } from './firebase';
 // --- Shop Context ---
 interface ShopContextType {
   products: Product[];
+  orders: Order[]; // Added orders to context interface
   settings: AppSettings;
   addProduct: (product: Product) => void;
   updateProduct: (id: string, data: Partial<Product>) => void;
@@ -30,13 +31,14 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  // Mock orders state for this session
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
+  // Initialize orders with empty array initially
+  const [orders, setOrders] = useState<Order[]>([]);
 
   // Load data from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('e2s_products');
     const savedSettings = localStorage.getItem('e2s_settings');
+    const savedOrders = localStorage.getItem('e2s_orders'); // Load saved orders
     
     if (savedProducts) {
       try {
@@ -50,6 +52,15 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) { console.error("Failed to parse settings", e); }
     }
+
+    if (savedOrders) {
+      try {
+        setOrders(JSON.parse(savedOrders));
+      } catch (e) { console.error("Failed to parse orders", e); }
+    } else {
+      // Use MOCK_ORDERS as initial data if no local data exists
+      setOrders(MOCK_ORDERS);
+    }
   }, []);
 
   useEffect(() => {
@@ -59,6 +70,13 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     localStorage.setItem('e2s_settings', JSON.stringify(settings));
   }, [settings]);
+
+  // Persist orders whenever they change
+  useEffect(() => {
+    if (orders.length > 0) {
+      localStorage.setItem('e2s_orders', JSON.stringify(orders));
+    }
+  }, [orders]);
 
   const addProduct = (product: Product) => {
     setProducts(prev => [product, ...prev]);
@@ -96,15 +114,13 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-      // In a real app, this would send data to backend
-      console.log("Order Placed:", order);
+      // Update local state
       setOrders(prev => [order, ...prev]);
-      // MOCK_ORDERS.unshift(order); // Update mock
       return Promise.resolve();
   };
 
   return (
-    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder }}>
+    <ShopContext.Provider value={{ products, orders, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder }}>
       {children}
     </ShopContext.Provider>
   );

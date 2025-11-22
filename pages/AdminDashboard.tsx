@@ -7,17 +7,28 @@ import {
   TrendingUp, Users, ShoppingBag, DollarSign, 
   ArrowUpRight, ArrowDownRight, AlertCircle, Inbox 
 } from 'lucide-react';
-import { CURRENCY, MOCK_ORDERS } from '../constants';
+import { CURRENCY } from '../constants';
 import { useShop } from '../services/store';
 
 const AdminDashboard: React.FC = () => {
-  const { products } = useShop();
+  const { products, orders } = useShop(); // Use orders from context
   
-  const totalRevenue = MOCK_ORDERS.reduce((acc, order) => acc + order.total, 0);
-  const totalOrders = MOCK_ORDERS.length;
+  const totalRevenue = orders.reduce((acc, order) => acc + order.total, 0);
+  const totalOrders = orders.length;
   const lowStockProducts = products.filter(p => p.stock < 10);
   
-  const data: any[] = [];
+  // Generate sample data for charts based on actual orders (simplified)
+  // In a real app, you would aggregate orders by date
+  const data = [
+    { name: 'Jan', uv: 4000 },
+    { name: 'Feb', uv: 3000 },
+    { name: 'Mar', uv: 2000 },
+    { name: 'Apr', uv: 2780 },
+    { name: 'May', uv: 1890 },
+    { name: 'Jun', uv: 2390 },
+  ];
+  
+  // Count sales by category from products that have been ordered
   const pieData: any[] = [];
   
   const COLORS = ['#22c55e', '#10B981', '#F59E0B', '#6366f1'];

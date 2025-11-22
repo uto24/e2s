@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../services/store';
+import { useAuth, useShop } from '../services/store';
 import { User, Mail, Shield, Edit2, Save, Package, CreditCard, LogOut, Camera, Phone, MapPin, Calendar, CheckCircle } from 'lucide-react';
-import { MOCK_ORDERS, CURRENCY } from '../constants';
+import { CURRENCY } from '../constants';
 import { Navigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
   const { user, logout, updateUserProfile } = useAuth();
+  const { orders } = useShop(); // Get global orders
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -17,7 +18,8 @@ const Profile: React.FC = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const userOrders = MOCK_ORDERS.filter(o => o.email === user.email);
+  // Filter orders for current user
+  const userOrders = orders.filter(o => o.email === user.email);
   const totalSpent = userOrders.reduce((acc, order) => acc + order.total, 0);
 
   const handleSave = async () => {

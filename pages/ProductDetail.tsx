@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, DollarSign, ChevronRight, Share2, Info, Box, CornerUpLeft, Check, Facebook, MessageCircle, Send, Link as LinkIcon } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
@@ -135,9 +136,23 @@ const ProductDetail: React.FC = () => {
     : [product.image, product.image, product.image];
 
   const reviews = product.reviews || [];
+  const cleanDesc = product.description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12 animate-fade-in">
+      {/* Dynamic SEO Meta Tags */}
+      <Helmet>
+        <title>{product.title} | ই-শপ</title>
+        <meta name="description" content={cleanDesc} />
+        <meta property="og:title" content={product.title} />
+        <meta property="og:description" content={cleanDesc} />
+        <meta property="og:image" content={product.image} />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:type" content="product" />
+        <meta property="product:price:amount" content={sellingPrice.toString()} />
+        <meta property="product:price:currency" content="BDT" />
+      </Helmet>
+
       {/* Breadcrumbs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

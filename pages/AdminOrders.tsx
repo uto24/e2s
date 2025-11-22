@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle } from 'lucide-react';
-import { MOCK_ORDERS, CURRENCY } from '../constants';
+import { CURRENCY } from '../constants';
 import { OrderStatus } from '../types';
+import { useShop } from '../services/store';
 
 const AdminOrders: React.FC = () => {
+  const { orders } = useShop(); // Fetch real orders from context
   const [activeFilter, setActiveFilter] = useState<OrderStatus | 'all'>('all');
 
   const filteredOrders = activeFilter === 'all' 
-    ? MOCK_ORDERS 
-    : MOCK_ORDERS.filter(o => o.status === activeFilter);
+    ? orders 
+    : orders.filter(o => o.status === activeFilter);
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
