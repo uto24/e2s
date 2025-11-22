@@ -32,7 +32,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
         
         {product.sale_price && (
-          <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse-soft">
+          <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse-soft">
             ছাড়
           </span>
         )}
@@ -41,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden md:flex justify-center space-x-3">
            <button 
              onClick={handleAddToCart}
-             className="bg-white text-red-600 p-3 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition-colors"
+             className="bg-white text-green-600 p-3 rounded-full shadow-lg hover:bg-green-600 hover:text-white transition-colors"
              title="কার্টে যোগ করুন"
            >
              <ShoppingCart size={20} />
@@ -58,7 +58,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </div>
         
-        <h3 className="text-gray-900 font-semibold text-lg leading-tight mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
+        <h3 className="text-gray-900 font-semibold text-lg leading-tight mb-2 line-clamp-2 group-hover:text-green-600 transition-colors">
           {product.title}
         </h3>
         
@@ -67,7 +67,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {product.sale_price ? (
               <>
                 <span className="text-gray-400 text-xs line-through">{CURRENCY}{product.price.toLocaleString()}</span>
-                <span className="text-red-600 font-bold text-lg">{CURRENCY}{product.sale_price.toLocaleString()}</span>
+                <span className="text-green-600 font-bold text-lg">{CURRENCY}{product.sale_price.toLocaleString()}</span>
               </>
             ) : (
               <span className="text-gray-900 font-bold text-lg">{CURRENCY}{product.price.toLocaleString()}</span>
@@ -77,7 +77,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Mobile Cart Button */}
           <button 
             onClick={handleAddToCart}
-            className="md:hidden p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-sm"
+            className="md:hidden p-2 bg-green-50 text-green-600 rounded-full hover:bg-green-600 hover:text-white transition-colors shadow-sm"
           >
             <ShoppingCart size={20} />
           </button>

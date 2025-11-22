@@ -52,7 +52,7 @@ const Login: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button 
           onClick={() => navigate('/')} 
-          className="flex items-center text-gray-500 hover:text-red-600 mb-6 mx-auto sm:mx-0 transition-colors"
+          className="flex items-center text-gray-500 hover:text-green-600 mb-6 mx-auto sm:mx-0 transition-colors"
         >
           <ArrowLeft size={18} className="mr-2" /> শপে ফিরে যান
         </button>
@@ -63,7 +63,7 @@ const Login: React.FC = () => {
           অথবা{' '}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="font-medium text-red-600 hover:text-red-500 focus:outline-none underline"
+            className="font-medium text-green-600 hover:text-green-500 focus:outline-none underline"
           >
             {isLogin ? 'বিনামূল্যে রেজিস্ট্রেশন করুন' : 'লগ ইন করুন'}
           </button>
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
+                    className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
                     placeholder="আপনার নাম"
                   />
                 </div>
@@ -112,7 +112,7 @@ const Login: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
+                  className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
                   placeholder="you@example.com"
                 />
               </div>
@@ -134,7 +134,7 @@ const Login: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
+                  className="focus:ring-green-500 focus:border-green-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
                   placeholder="••••••••"
                 />
               </div>
@@ -156,7 +156,7 @@ const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'প্রসেসিং...' : (isLogin ? 'লগ ইন' : 'রেজিস্টার')}
               </button>

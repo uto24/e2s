@@ -20,7 +20,7 @@ const AdminDashboard: React.FC = () => {
   const data: any[] = [];
   const pieData: any[] = [];
   
-  const COLORS = ['#ef4444', '#10B981', '#F59E0B', '#6366f1'];
+  const COLORS = ['#22c55e', '#10B981', '#F59E0B', '#6366f1'];
 
   const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
@@ -63,7 +63,7 @@ const AdminDashboard: React.FC = () => {
           <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             Export Report
           </button>
-          <button className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 shadow-sm transition-colors">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors">
             + New Campaign
           </button>
         </div>
@@ -75,7 +75,7 @@ const AdminDashboard: React.FC = () => {
           title="Total Revenue" 
           value={`${CURRENCY}${totalRevenue.toLocaleString()}`} 
           icon={DollarSign} 
-          color="red" 
+          color="green" 
           trend={0} 
         />
         <StatCard 
@@ -96,7 +96,7 @@ const AdminDashboard: React.FC = () => {
           title="Affiliate Sales" 
           value={`${CURRENCY}0`} 
           icon={TrendingUp} 
-          color="green" 
+          color="indigo" 
           trend={0} 
         />
       </div>
@@ -112,15 +112,15 @@ const AdminDashboard: React.FC = () => {
                 <AreaChart data={data}>
                   <defs>
                     <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                  <Area type="monotone" dataKey="uv" stroke="#ef4444" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="uv" stroke="#22c55e" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (

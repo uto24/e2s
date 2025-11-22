@@ -28,7 +28,7 @@ const AdminLayout: React.FC = () => {
           <p className="mt-2 text-gray-600">You do not have permission to view this area.</p>
           <button 
             onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             Return to Shop
           </button>
@@ -69,7 +69,7 @@ const AdminLayout: React.FC = () => {
         `}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-slate-950 shrink-0 shadow-md">
-          <Link to="/" className="text-xl font-bold tracking-wider text-red-500">E2S ADMIN</Link>
+          <Link to="/" className="text-xl font-bold tracking-wider text-green-500">E2S ADMIN</Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
             <X size={24} />
           </button>
@@ -77,7 +77,7 @@ const AdminLayout: React.FC = () => {
 
         <div className="px-4 py-4 flex-1 overflow-y-auto">
           <div className="flex items-center space-x-3 mb-6 p-3 bg-slate-800 rounded-lg border border-slate-700">
-            <img src={user.avatar} alt="Admin" className="w-10 h-10 rounded-full border-2 border-red-500 object-cover" />
+            <img src={user.avatar} alt="Admin" className="w-10 h-10 rounded-full border-2 border-green-500 object-cover" />
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
               <p className="text-xs text-gray-400 capitalize">{user.role}</p>
@@ -94,7 +94,7 @@ const AdminLayout: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
                     isActive 
-                      ? 'bg-red-600 text-white shadow-lg shadow-red-900/20' 
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-900/20' 
                       : 'text-gray-300 hover:bg-slate-800 hover:text-white'
                   }`
                 }
@@ -122,7 +122,7 @@ const AdminLayout: React.FC = () => {
           <div className="flex items-center">
             <button 
               onClick={() => setSidebarOpen(true)} 
-              className="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-md p-1 -ml-2 mr-2"
+              className="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-md p-1 -ml-2 mr-2"
             >
               <Menu size={24} />
             </button>
@@ -136,7 +136,7 @@ const AdminLayout: React.FC = () => {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm transition duration-150 ease-in-out"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm transition duration-150 ease-in-out"
                 placeholder="Search global data..."
               />
             </div>
@@ -144,10 +144,10 @@ const AdminLayout: React.FC = () => {
 
           <div className="flex items-center space-x-2 sm:space-x-4">
             <button className="relative p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none hover:bg-gray-100 transition-colors">
-              <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
+              <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-white animate-pulse"></span>
               <Bell size={20} />
             </button>
-            <Link to="/" className="text-sm font-medium text-red-600 hover:text-red-500 whitespace-nowrap bg-red-50 px-3 py-1 rounded-full">
+            <Link to="/" className="text-sm font-medium text-green-600 hover:text-green-500 whitespace-nowrap bg-green-50 px-3 py-1 rounded-full">
               View Shop
             </Link>
           </div>

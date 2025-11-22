@@ -9,10 +9,22 @@ export enum UserRole {
   AFFILIATE = 'affiliate'
 }
 
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 export interface User {
   uid: string;
   name: string;
   email: string;
+  phone?: string; // New field
+  address?: string; // New field
   role: UserRole;
   affiliate_id?: string;
   balance: number;
@@ -34,6 +46,7 @@ export interface Product {
   images?: string[]; // Gallery images
   rating: number;
   reviews_count: number;
+  reviews?: Review[]; // New field
   stock: number;
   status: 'active' | 'draft' | 'archived';
   sizes?: string[]; 

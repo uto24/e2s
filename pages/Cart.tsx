@@ -26,12 +26,12 @@ const Cart: React.FC = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 animate-fade-in">
-        <div className="w-32 h-32 bg-red-50 rounded-full flex items-center justify-center mb-6 animate-pulse-soft">
-          <ShoppingBag size={64} className="text-red-300" />
+        <div className="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-pulse-soft">
+          <ShoppingBag size={64} className="text-green-300" />
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-3">আপনার কার্ট খালি</h2>
         <p className="text-gray-500 mb-8 text-lg">আপনি এখনও কোনো পণ্য কার্টে যোগ করেননি।</p>
-        <Link to="/" className="px-10 py-4 bg-red-600 text-white rounded-full font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200">
+        <Link to="/" className="px-10 py-4 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200">
           কেনাকাটা করুন
         </Link>
       </div>
@@ -41,7 +41,7 @@ const Cart: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
       <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-        <ShoppingBag className="mr-3 text-red-600" /> শপিং কার্ট
+        <ShoppingBag className="mr-3 text-green-600" /> শপিং কার্ট
       </h1>
       
       <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
@@ -62,9 +62,9 @@ const Cart: React.FC = () => {
                   <div>
                     <div className="flex justify-between text-base font-bold text-gray-900">
                       <h3 className="text-lg">
-                        <Link to={`/product/${item.id}`} className="hover:text-red-600 transition-colors">{item.title}</Link>
+                        <Link to={`/product/${item.id}`} className="hover:text-green-600 transition-colors">{item.title}</Link>
                       </h3>
-                      <p className="ml-4 text-red-600">
+                      <p className="ml-4 text-green-600">
                         {CURRENCY}{((item.sale_price || item.price) * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -83,14 +83,14 @@ const Cart: React.FC = () => {
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                        <button 
                          onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                         className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                         className="p-2 text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors"
                        >
                          <Minus size={14} />
                        </button>
                        <span className="px-4 font-medium min-w-[2rem] text-center">{item.quantity}</span>
                        <button 
                          onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                         className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                         className="p-2 text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors"
                        >
                          <Plus size={14} />
                        </button>
@@ -119,31 +119,31 @@ const Cart: React.FC = () => {
           {/* Shipping Selector */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <MapPin size={20} className="mr-2 text-red-600"/> ডেলিভারি এলাকা
+              <MapPin size={20} className="mr-2 text-green-600"/> ডেলিভারি এলাকা
             </h2>
             <div className="space-y-3">
-              <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${shippingLocation === 'inside' ? 'border-red-500 bg-red-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${shippingLocation === 'inside' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
                 <div className="flex items-center">
                   <input 
                     type="radio" 
                     name="shipping" 
                     checked={shippingLocation === 'inside'} 
                     onChange={() => setShippingLocation('inside')}
-                    className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300"
+                    className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300"
                   />
                   <span className="ml-3 font-bold text-gray-900">ঢাকা সিটি</span>
                 </div>
                 <span className="text-xs font-medium bg-white px-2 py-1 rounded border border-gray-100 text-gray-500">দ্রুত ডেলিভারি</span>
               </label>
 
-              <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${shippingLocation === 'outside' ? 'border-red-500 bg-red-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${shippingLocation === 'outside' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
                 <div className="flex items-center">
                   <input 
                     type="radio" 
                     name="shipping" 
                     checked={shippingLocation === 'outside'} 
                     onChange={() => setShippingLocation('outside')}
-                    className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300"
+                    className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300"
                   />
                   <span className="ml-3 font-bold text-gray-900">সারা বাংলাদেশ</span>
                 </div>
@@ -190,14 +190,14 @@ const Cart: React.FC = () => {
                 )}
                 <div className="py-4 flex items-center justify-between border-t border-gray-200 mt-4">
                   <dt className="text-lg font-bold text-gray-900">সর্বমোট</dt>
-                  <dd className="text-xl font-bold text-red-600">{CURRENCY}{grandTotal.toLocaleString()}</dd>
+                  <dd className="text-xl font-bold text-green-600">{CURRENCY}{grandTotal.toLocaleString()}</dd>
                 </div>
               </dl>
             </div>
 
             <div className="mt-8">
               <button
-                className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-full shadow-lg shadow-red-200 text-base font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all transform hover:-translate-y-1"
+                className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-full shadow-lg shadow-green-200 text-base font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all transform hover:-translate-y-1"
               >
                 অর্ডার কনফার্ম করুন <ArrowRight size={20} className="ml-2" />
               </button>
@@ -205,7 +205,7 @@ const Cart: React.FC = () => {
             
             <div className="mt-6 text-center text-sm text-gray-500">
               <p>
-                অথবা <Link to="/" className="text-red-600 font-medium hover:text-red-500 hover:underline">কেনাকাটা চালিয়ে যান</Link>
+                অথবা <Link to="/" className="text-green-600 font-medium hover:text-green-500 hover:underline">কেনাকাটা চালিয়ে যান</Link>
               </p>
             </div>
           </div>

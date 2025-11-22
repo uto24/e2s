@@ -66,7 +66,7 @@ const AdminSettings: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
         <button 
           onClick={handleSave}
-          className={`flex items-center px-4 py-2 rounded-lg text-white shadow-sm w-full sm:w-auto justify-center transition-colors ${isSaved ? 'bg-green-600' : 'bg-red-600 hover:bg-red-700'}`}
+          className={`flex items-center px-4 py-2 rounded-lg text-white shadow-sm w-full sm:w-auto justify-center transition-colors ${isSaved ? 'bg-green-600' : 'bg-green-600 hover:bg-green-700'}`}
         >
           <Save size={18} className="mr-2" />
           {isSaved ? 'Saved!' : 'Save Changes'}
@@ -90,7 +90,7 @@ const AdminSettings: React.FC = () => {
                   name="appName"
                   value={localSettings.appName}
                   onChange={handleChange}
-                  className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />
               </div>
             </div>
@@ -104,7 +104,7 @@ const AdminSettings: React.FC = () => {
                   step="0.01"
                   value={localSettings.taxRate}
                   onChange={handleChange}
-                  className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ const AdminSettings: React.FC = () => {
                       name="title"
                       value={localSettings.campaign.title}
                       onChange={handleCampaignChange}
-                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -150,7 +150,7 @@ const AdminSettings: React.FC = () => {
                       name="subtitle"
                       value={localSettings.campaign.subtitle}
                       onChange={handleCampaignChange}
-                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -165,7 +165,7 @@ const AdminSettings: React.FC = () => {
                           ...prev,
                           campaign: { ...prev.campaign, endTime: new Date(e.target.value).toISOString() }
                       }))}
-                      className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                     />
                   </div>
                 </div>

@@ -99,7 +99,7 @@ const AdminProducts: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-sm transition-colors"
+          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm transition-colors"
         >
           <Plus size={20} className="mr-2" />
           Add Product
@@ -122,7 +122,7 @@ const AdminProducts: React.FC = () => {
             <input
               type="text"
               placeholder="Search products..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -250,7 +250,7 @@ const AdminProducts: React.FC = () => {
                       required
                       value={formData.title}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     />
                   </div>
                   
@@ -263,7 +263,7 @@ const AdminProducts: React.FC = () => {
                         required
                         value={formData.price}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                     <div>
@@ -274,7 +274,7 @@ const AdminProducts: React.FC = () => {
                         value={formData.wholesalePrice}
                         onChange={handleInputChange}
                         placeholder="Cost for affiliates"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                     <div>
@@ -285,7 +285,7 @@ const AdminProducts: React.FC = () => {
                         required
                         value={formData.stock}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -298,7 +298,7 @@ const AdminProducts: React.FC = () => {
                         name="shippingInside" 
                         value={formData.shippingInside}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                      <div>
@@ -308,7 +308,7 @@ const AdminProducts: React.FC = () => {
                         name="shippingOutside" 
                         value={formData.shippingOutside}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                      <div className="flex items-center pt-6">
@@ -318,7 +318,7 @@ const AdminProducts: React.FC = () => {
                         type="checkbox"
                         checked={formData.isCodAvailable}
                         onChange={handleInputChange}
-                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                       />
                       <label htmlFor="isCodAvailable" className="ml-2 block text-sm font-medium text-gray-700">
                          Allow COD?
@@ -332,7 +332,7 @@ const AdminProducts: React.FC = () => {
                       name="category" 
                       value={formData.category}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
                       <option value="">Select Category</option>
                       <option value="Electronics">Electronics</option>
@@ -352,7 +352,7 @@ const AdminProducts: React.FC = () => {
                         value={formData.sizes}
                         onChange={handleInputChange}
                         placeholder="S, M, L, XL"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                     <div>
@@ -363,7 +363,7 @@ const AdminProducts: React.FC = () => {
                         value={formData.colors}
                         onChange={handleInputChange}
                         placeholder="Red, Blue, Black"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -377,7 +377,7 @@ const AdminProducts: React.FC = () => {
                         onChange={handleInputChange}
                         placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
                         rows={3}
-                        className="block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                        className="block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                       <p className="mt-1 text-xs text-gray-500">Add multiple image links separated by commas.</p>
                     </div>
@@ -389,13 +389,13 @@ const AdminProducts: React.FC = () => {
                       rows={4} 
                       value={formData.description}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     ></textarea>
                   </div>
                   <div className="mt-5 sm:mt-6">
                     <button
                       type="submit"
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
                     >
                       Save Product
                     </button>

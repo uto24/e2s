@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../services/store';
-import { User, Mail, Shield, Edit2, Save, Package, CreditCard, LogOut, Camera } from 'lucide-react';
+import { User, Mail, Shield, Edit2, Save, Package, CreditCard, LogOut, Camera, Phone, MapPin, Calendar, CheckCircle } from 'lucide-react';
 import { MOCK_ORDERS, CURRENCY } from '../constants';
 import { Navigate } from 'react-router-dom';
 
@@ -9,6 +9,8 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
     password: ''
   });
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -23,6 +25,8 @@ const Profile: React.FC = () => {
     try {
       await updateUserProfile({ 
         name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
         password: formData.password || undefined 
       });
       setStatus('success');
@@ -41,7 +45,7 @@ const Profile: React.FC = () => {
           
           {/* Profile Sidebar */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-fit sticky top-24">
-            <div className="bg-gradient-to-r from-red-600 to-red-800 h-32 relative"></div>
+            <div className="bg-gradient-to-r from-green-600 to-green-800 h-32 relative"></div>
             <div className="px-6 pb-8 relative text-center">
               <div className="relative inline-block -mt-16 mb-4">
                 <img 
@@ -55,29 +59,38 @@ const Profile: React.FC = () => {
               </div>
               
               <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
-              <p className="text-gray-500 mb-4">{user.email}</p>
+              <p className="text-gray-500 mb-2">{user.email}</p>
               
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${
-                user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                user.role === 'affiliate' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-              }`}>
-                {user.role}
-              </span>
+              <div className="flex justify-center gap-2 mb-4">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${
+                    user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                    user.role === 'affiliate' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                }`}>
+                    {user.role}
+                </span>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide bg-gray-100 text-gray-600">
+                    <CheckCircle size={12} className="mr-1" /> Active
+                </span>
+              </div>
 
-              <div className="mt-8 grid grid-cols-2 gap-4 border-t border-gray-100 pt-6">
+              <div className="text-xs text-gray-400 mb-6 flex items-center justify-center">
+                 <Calendar size={12} className="mr-1" /> জয়েন করেছেন: {new Date(user.joinedAt || Date.now()).toLocaleDateString()}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-6">
                 <div className="text-center">
                   <span className="block text-2xl font-bold text-gray-900">{userOrders.length}</span>
                   <span className="text-xs text-gray-500 uppercase font-medium">অর্ডার</span>
                 </div>
                 <div className="text-center border-l border-gray-100">
-                  <span className="block text-2xl font-bold text-red-600">{CURRENCY}{totalSpent.toLocaleString()}</span>
+                  <span className="block text-2xl font-bold text-green-600">{CURRENCY}{totalSpent.toLocaleString()}</span>
                   <span className="text-xs text-gray-500 uppercase font-medium">মোট খরচ</span>
                 </div>
               </div>
               
               <button 
                 onClick={() => logout()}
-                className="mt-8 w-full py-2 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-medium flex items-center justify-center transition-colors"
+                className="mt-8 w-full py-2 px-4 border border-green-200 text-green-600 rounded-lg hover:bg-green-50 font-medium flex items-center justify-center transition-colors"
               >
                 <LogOut size={16} className="mr-2" /> লগ আউট
               </button>
@@ -91,37 +104,64 @@ const Profile: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  <User className="mr-2 text-red-600" /> ব্যক্তিগত তথ্য
+                  <User className="mr-2 text-green-600" /> ব্যক্তিগত তথ্য
                 </h3>
                 {!isEditing ? (
                   <button 
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center text-sm text-gray-500 hover:text-red-600 transition-colors"
+                    className="flex items-center text-sm text-gray-500 hover:text-green-600 transition-colors"
                   >
                     <Edit2 size={16} className="mr-1" /> এডিট করুন
                   </button>
                 ) : (
-                  <button 
-                    onClick={handleSave}
-                    disabled={status === 'saving'}
-                    className="flex items-center text-sm text-white bg-red-600 px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    {status === 'saving' ? 'সেভ হচ্ছে...' : <><Save size={16} className="mr-1" /> সেভ করুন</>}
-                  </button>
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => setIsEditing(false)}
+                      className="flex items-center text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                       বাতিল
+                    </button>
+                    <button 
+                      onClick={handleSave}
+                      disabled={status === 'saving'}
+                      className="flex items-center text-sm text-white bg-green-600 px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      {status === 'saving' ? 'সেভ হচ্ছে...' : <><Save size={16} className="mr-1" /> সেভ করুন</>}
+                    </button>
+                  </div>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">পুরো নাম</label>
-                  <input 
-                    type="text" 
-                    disabled={!isEditing}
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className={`w-full p-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-transparent bg-gray-50'}`}
-                  />
+                  <div className="relative">
+                      <input 
+                        type="text" 
+                        disabled={!isEditing}
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        className={`w-full pl-10 p-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500' : 'border-transparent bg-gray-50'}`}
+                      />
+                      <User size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ফোন নাম্বার</label>
+                  <div className="relative">
+                      <input 
+                        type="tel" 
+                        disabled={!isEditing}
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        placeholder="01XXXXXXXXX"
+                        className={`w-full pl-10 p-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500' : 'border-transparent bg-gray-50'}`}
+                      />
+                       <Phone size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ইমেইল</label>
                   <div className="relative">
@@ -134,27 +174,36 @@ const Profile: React.FC = () => {
                     <Mail size={18} className="absolute left-3 top-3.5 text-gray-400" />
                   </div>
                 </div>
+
+                 <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ঠিকানা</label>
+                   <div className="relative">
+                      <input 
+                        type="text" 
+                        disabled={!isEditing}
+                        value={formData.address}
+                        onChange={(e) => setFormData({...formData, address: e.target.value})}
+                        placeholder="আপনার সম্পূর্ণ ঠিকানা"
+                        className={`w-full pl-10 p-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500' : 'border-transparent bg-gray-50'}`}
+                      />
+                      <MapPin size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                   </div>
+                </div>
+
                 {isEditing && (
-                   <div className="md:col-span-2">
+                   <div className="md:col-span-2 border-t border-gray-100 pt-4 mt-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">নতুন পাসওয়ার্ড (পরিবর্তন করতে চাইলে দিন)</label>
                     <input 
                       type="password" 
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       placeholder="••••••••"
-                      className="w-full p-3 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                      className="w-full p-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                     />
                   </div>
                 )}
-                <div className="md:col-span-2">
-                   <label className="block text-sm font-medium text-gray-700 mb-1">অ্যাকাউন্ট রোল</label>
-                   <div className="flex items-center p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-800 text-sm font-medium">
-                     <Shield size={18} className="mr-2" />
-                     {user.role.toUpperCase().replace('_', ' ')} ACCOUNT
-                   </div>
-                </div>
               </div>
-              {status === 'success' && <p className="mt-4 text-sm text-green-600 font-medium">তথ্য আপডেট হয়েছে!</p>}
+              {status === 'success' && <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg flex items-center"><CheckCircle size={16} className="mr-2"/> তথ্য সফলভাবে আপডেট হয়েছে!</div>}
               {status === 'error' && <p className="mt-4 text-sm text-red-600 font-medium">কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।</p>}
             </div>
 
@@ -162,7 +211,7 @@ const Profile: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Package className="mr-2 text-red-600" /> অর্ডারের তালিকা
+                  <Package className="mr-2 text-green-600" /> অর্ডারের তালিকা
                 </h3>
               </div>
               <div className="overflow-x-auto">

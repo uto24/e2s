@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem, User, UserRole, AppSettings } from '../types';
+import { Product, CartItem, User, UserRole, AppSettings, Review } from '../types';
 import { DEFAULT_SETTINGS } from '../constants';
 import { 
   signInWithPopup, 
@@ -21,6 +21,7 @@ interface ShopContextType {
   updateProduct: (id: string, data: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   updateSettings: (newSettings: AppSettings) => void;
+  addReview: (productId: string, review: Review) => void;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -72,8 +73,27 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSettings(newSettings);
   };
 
+  const addReview = (productId: string, review: Review) => {
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        const updatedReviews = [review, ...(p.reviews || [])];
+        // Recalculate rating
+        const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
+        const newRating = parseFloat((totalRating / updatedReviews.length).toFixed(1));
+        
+        return {
+          ...p,
+          reviews: updatedReviews,
+          reviews_count: updatedReviews.length,
+          rating: newRating
+        };
+      }
+      return p;
+    }));
+  };
+
   return (
-    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings }}>
+    <ShopContext.Provider value={{ products, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview }}>
       {children}
     </ShopContext.Provider>
   );
@@ -92,7 +112,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
-  updateUserProfile: (data: { name?: string; password?: string }) => Promise<void>;
+  updateUserProfile: (data: { name?: string; password?: string; phone?: string; address?: string }) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -107,7 +127,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const mapUser = (fbUser: FirebaseUser): User => {
     const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
-    
+    // Try to retrieve extended info from local storage for now (mocking DB)
+    const storedExtra = localStorage.getItem(`user_extra_${fbUser.uid}`);
+    const extra = storedExtra ? JSON.parse(storedExtra) : {};
+
     return {
       uid: fbUser.uid,
       name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
@@ -115,7 +138,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role: role,
       affiliate_id: fbUser.uid.substring(0, 8),
       balance: 0,
-      avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`
+      avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`,
+      joinedAt: fbUser.metadata.creationTime,
+      phone: extra.phone || '',
+      address: extra.address || ''
     };
   };
 
@@ -163,7 +189,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateUserProfile = async (data: { name?: string; password?: string }) => {
+  const updateUserProfile = async (data: { name?: string; password?: string; phone?: string; address?: string }) => {
     if (!auth.currentUser) throw new Error("No user logged in");
     
     try {
@@ -174,8 +200,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await updatePassword(auth.currentUser, data.password);
       }
       
+      // Store extra fields in local storage to persist them for this demo
+      const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
+      const newExtra = {
+          ...(currentExtra ? JSON.parse(currentExtra) : {}),
+          ...(data.phone && { phone: data.phone }),
+          ...(data.address && { address: data.address })
+      };
+      localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
+      
       // Update local state
-      setUser(prev => prev ? { ...prev, name: data.name || prev.name } : null);
+      setUser(prev => prev ? { 
+          ...prev, 
+          name: data.name || prev.name,
+          phone: data.phone || prev.phone,
+          address: data.address || prev.address
+      } : null);
     } catch (error) {
       console.error("Profile update failed", error);
       throw error;

@@ -37,7 +37,7 @@ const AdminOrders: React.FC = () => {
             onClick={() => setActiveFilter(status as any)}
             className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${
               activeFilter === status 
-                ? 'bg-red-600 text-white' 
+                ? 'bg-green-600 text-white' 
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -64,7 +64,7 @@ const AdminOrders: React.FC = () => {
               {filteredOrders.length > 0 ? (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">#{order.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">#{order.id}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900">{order.customer}</span>
@@ -79,7 +79,7 @@ const AdminOrders: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.paymentMethod}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <button className="text-gray-400 hover:text-red-600 p-1" title="View Details">
+                        <button className="text-gray-400 hover:text-green-600 p-1" title="View Details">
                           <Eye size={18} />
                         </button>
                         <button className="text-gray-400 hover:text-gray-600 p-1" title="Download Invoice">
