@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
+import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, CartProvider } from './services/store';
 import Layout from './components/Layout';
 
@@ -13,18 +13,24 @@ import Login from './pages/Login';
 
 // Component to handle logic outside of Layout but inside Router
 const AppLogic: React.FC = () => {
-  const [searchParams] = useSearchParams();
-
+  // Global Affiliate Tracking
+  // Since MemoryRouter doesn't look at window.location, we manually check for the ref param on mount
   useEffect(() => {
-    // Global Affiliate Tracking
-    const refId = searchParams.get('ref');
-    if (refId) {
-      // Store referrer in localStorage for attribution during checkout (30-day window logic)
-      localStorage.setItem('e2s_referrer', refId);
-      localStorage.setItem('e2s_referrer_time', Date.now().toString());
-      console.log(`Tracking affiliate referral: ${refId}`);
+    try {
+      const urlString = window.location.href;
+      const match = urlString.match(/[?&]ref=([^&#]+)/);
+      
+      if (match && match[1]) {
+        const refId = match[1];
+        // Store referrer in localStorage for attribution during checkout (30-day window logic)
+        localStorage.setItem('e2s_referrer', refId);
+        localStorage.setItem('e2s_referrer_time', Date.now().toString());
+        console.log(`Tracking affiliate referral: ${refId}`);
+      }
+    } catch (e) {
+      console.error("Error parsing affiliate ref", e);
     }
-  }, [searchParams]);
+  }, []);
 
   return null;
 };
