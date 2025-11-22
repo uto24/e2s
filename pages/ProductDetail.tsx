@@ -12,14 +12,21 @@ const ProductDetail: React.FC = () => {
   const { products } = useShop();
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
+  
+  // State for options
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (products.length > 0) {
       const found = products.find(p => p.id === id);
       if (found) {
         setProduct(found);
+        // Reset selection when product loads
+        setSelectedSize('');
+        setSelectedColor('');
       } else {
-        // Only redirect if products are loaded but not found
         navigate('/');
       }
     }
@@ -29,9 +36,21 @@ const ProductDetail: React.FC = () => {
   if (!product) return <div className="flex justify-center items-center h-96"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>;
 
   const handleAddToCart = () => {
-    for(let i = 0; i < qty; i++) {
-      addToCart(product);
+    setError('');
+    
+    // Validation
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      setError('Please select a size.');
+      return;
     }
+    
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      setError('Please select a color.');
+      return;
+    }
+
+    // Add to cart with variants
+    addToCart(product, qty, selectedSize, selectedColor);
   };
 
   return (
@@ -85,8 +104,60 @@ const ProductDetail: React.FC = () => {
             <h3 className="sr-only">Description</h3>
             <div className="text-base text-gray-700 space-y-6" dangerouslySetInnerHTML={{ __html: product.description }} />
           </div>
+          
+          {/* Variations */}
+          <div className="mt-8 space-y-4">
+            {product.sizes && product.sizes.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900">Size</h4>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`border rounded-md py-2 px-4 flex items-center justify-center text-sm font-medium uppercase sm:flex-1 cursor-pointer focus:outline-none transition-all
+                        ${selectedSize === size 
+                          ? 'bg-indigo-600 border-transparent text-white hover:bg-indigo-700' 
+                          : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          <div className="mt-10 flex sm:flex-col1">
+            {product.colors && product.colors.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900">Color</h4>
+                <div className="flex items-center space-x-3 mt-2">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`relative p-0.5 rounded-full flex items-center justify-center cursor-pointer focus:outline-none ring-offset-2
+                        ${selectedColor === color ? 'ring-2 ring-indigo-500' : ''}`}
+                    >
+                      <span 
+                        className="h-8 w-8 bg-gray-200 border border-black border-opacity-10 rounded-full" 
+                        style={{ backgroundColor: color.toLowerCase() }}
+                        title={color}
+                      ></span>
+                    </button>
+                  ))}
+                </div>
+                {selectedColor && <p className="text-sm text-gray-500 mt-1">Selected: {selectedColor}</p>}
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="mt-4 text-red-600 text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-8 flex sm:flex-col1">
             <div className="max-w-xs flex items-center border border-gray-300 rounded-md">
               <button 
                 onClick={() => setQty(Math.max(1, qty - 1))}

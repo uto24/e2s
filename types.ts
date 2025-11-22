@@ -35,10 +35,15 @@ export interface Product {
   stock: number;
   commission_rate: number; // Percentage, e.g., 0.10 for 10%
   status: 'active' | 'draft' | 'archived';
+  sizes?: string[]; // Array of available sizes
+  colors?: string[]; // Array of available colors
 }
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
+  cartItemId: string; // Unique ID for cart entry (product + variants)
 }
 
 export interface AffiliateStat {
@@ -78,7 +83,9 @@ export interface AppSettings {
   appName: string;
   currency: string;
   taxRate: number;
-  shippingCost: number;
+  shippingInsideCity: number; // Special area rate
+  shippingOutsideCity: number; // Rest of country rate
+  codEnabled: boolean; // Cash on Delivery toggle
   maintenanceMode: boolean;
   globalCommission: number;
 }

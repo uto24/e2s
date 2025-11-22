@@ -40,7 +40,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (savedSettings) {
       try {
-        setSettings(JSON.parse(savedSettings));
+        const parsed = JSON.parse(savedSettings);
+        // Merge with default to ensure new fields exist
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) { console.error("Failed to parse settings", e); }
     }
   }, []);
@@ -191,9 +193,9 @@ export const useAuth = () => {
 // --- Cart Context ---
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   total: number;
   itemCount: number;
@@ -221,29 +223,45 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('e2s_cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, quantity = 1, size?: string, color?: string) => {
     setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => 
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+      // Find if item with same ID and same variants exists
+      const existingIndex = prev.findIndex(item => 
+        item.id === product.id && 
+        item.selectedSize === size && 
+        item.selectedColor === color
+      );
+
+      if (existingIndex > -1) {
+        // Update existing item
+        const newItems = [...prev];
+        newItems[existingIndex].quantity += quantity;
+        return newItems;
       }
-      return [...prev, { ...product, quantity: 1 }];
+      
+      // Add new item
+      const newItem: CartItem = {
+        ...product,
+        quantity,
+        selectedSize: size,
+        selectedColor: color,
+        cartItemId: `${product.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+      };
+      return [...prev, newItem];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setItems(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (cartItemId: string) => {
+    setItems(prev => prev.filter(item => item.cartItemId !== cartItemId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity < 1) {
-      removeFromCart(productId);
+      removeFromCart(cartItemId);
       return;
     }
     setItems(prev => prev.map(item => 
-      item.id === productId ? { ...item, quantity } : item
+      item.cartItemId === cartItemId ? { ...item, quantity } : item
     ));
   };
 

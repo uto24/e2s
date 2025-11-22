@@ -17,7 +17,9 @@ const AdminProducts: React.FC = () => {
     image: '',
     stock: '',
     commission: '0.10',
-    description: ''
+    description: '',
+    sizes: '',
+    colors: ''
   });
 
   const filteredProducts = products.filter(product => 
@@ -45,7 +47,9 @@ const AdminProducts: React.FC = () => {
       reviews_count: 0,
       stock: parseInt(formData.stock) || 0,
       commission_rate: parseFloat(formData.commission) || 0.10,
-      status: 'active'
+      status: 'active',
+      sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [],
+      colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c !== '') : [],
     };
 
     addProduct(newProduct);
@@ -57,7 +61,9 @@ const AdminProducts: React.FC = () => {
       image: '',
       stock: '',
       commission: '0.10',
-      description: ''
+      description: '',
+      sizes: '',
+      colors: ''
     });
   };
 
@@ -121,7 +127,7 @@ const AdminProducts: React.FC = () => {
                   Stock
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Commission
+                  Vars
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -160,7 +166,9 @@ const AdminProducts: React.FC = () => {
                     </div>
                   </td>
                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.commission_rate * 100}%
+                    {((product.sizes?.length || 0) > 0 || (product.colors?.length || 0) > 0) ? (
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300">Yes</span>
+                    ) : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
@@ -252,6 +260,33 @@ const AdminProducts: React.FC = () => {
                       <option value="Beauty">Beauty</option>
                     </select>
                   </div>
+                  
+                  {/* Variants */}
+                   <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Sizes (Comma separated)</label>
+                      <input 
+                        type="text" 
+                        name="sizes" 
+                        value={formData.sizes}
+                        onChange={handleInputChange}
+                        placeholder="S, M, L, XL"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Colors (Comma separated)</label>
+                      <input 
+                        type="text" 
+                        name="colors" 
+                        value={formData.colors}
+                        onChange={handleInputChange}
+                        placeholder="Red, Blue, Black"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Image URL</label>
                     <div className="mt-1 flex rounded-md shadow-sm">
