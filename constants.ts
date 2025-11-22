@@ -1,10 +1,10 @@
 import { Product, AffiliateStat, Order, UserRole, WithdrawRequest, AppSettings } from './types';
 
-export const APP_NAME = "E2S Shop";
+export const APP_NAME = "ই-শপ";
 export const CURRENCY = "৳";
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  appName: "E2S Shop & Affiliates",
+  appName: "ই-শপ ও এফিলিয়েট",
   currency: "৳",
   taxRate: 0.00,
   maintenanceMode: false,

@@ -13,7 +13,6 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
       if(user.role === 'admin') navigate('/admin');
@@ -32,9 +31,8 @@ const Login: React.FC = () => {
       } else {
         await registerWithEmail(email, password, name);
       }
-      // Navigation handled by useEffect
     } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'ত্রুটি হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
@@ -45,40 +43,40 @@ const Login: React.FC = () => {
     try {
       await loginWithGoogle();
     } catch (err: any) {
-      setError(err.message || 'Google sign-in failed.');
+      setError(err.message || 'গুগল সাইন-ইন ব্যর্থ হয়েছে।');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans animate-fade-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button 
           onClick={() => navigate('/')} 
-          className="flex items-center text-gray-500 hover:text-gray-700 mb-6 mx-auto sm:mx-0"
+          className="flex items-center text-gray-500 hover:text-red-600 mb-6 mx-auto sm:mx-0 transition-colors"
         >
-          <ArrowLeft size={18} className="mr-2" /> Back to Shop
+          <ArrowLeft size={18} className="mr-2" /> শপে ফিরে যান
         </button>
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          {isLogin ? 'আপনার অ্যাকাউন্টে লগ ইন করুন' : 'নতুন অ্যাকাউন্ট খুলুন'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
+          অথবা{' '}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+            className="font-medium text-red-600 hover:text-red-500 focus:outline-none underline"
           >
-            {isLogin ? 'register for free' : 'sign in to existing account'}
+            {isLogin ? 'বিনামূল্যে রেজিস্ট্রেশন করুন' : 'লগ ইন করুন'}
           </button>
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-xl sm:px-10 border border-gray-100">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name
+                  পুরো নাম
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -91,8 +89,8 @@ const Login: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2 border"
-                    placeholder="John Doe"
+                    className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
+                    placeholder="আপনার নাম"
                   />
                 </div>
               </div>
@@ -100,7 +98,7 @@ const Login: React.FC = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                ইমেইল অ্যাড্রেস
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -114,7 +112,7 @@ const Login: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
                   placeholder="you@example.com"
                 />
               </div>
@@ -122,7 +120,7 @@ const Login: React.FC = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                পাসওয়ার্ড
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -136,14 +134,14 @@ const Login: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-lg p-3 border"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-4">
+              <div className="rounded-lg bg-red-50 p-4 border border-red-100">
                 <div className="flex">
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-red-800">
@@ -158,30 +156,30 @@ const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
               >
-                {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Register')}
+                {loading ? 'প্রসেসিং...' : (isLogin ? 'লগ ইন' : 'রেজিস্টার')}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">অথবা</span>
               </div>
             </div>
 
             <div className="mt-6">
               <button
                 onClick={handleGoogleLogin}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none"
+                className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-full shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
               >
                 <Chrome size={20} className="mr-2 text-red-500" />
-                <span>Google</span>
+                <span>গুগল দিয়ে লগ ইন করুন</span>
               </button>
             </div>
           </div>

@@ -13,19 +13,17 @@ import { useShop } from '../services/store';
 const AdminDashboard: React.FC = () => {
   const { products } = useShop();
   
-  // Calculate real stats from data
   const totalRevenue = MOCK_ORDERS.reduce((acc, order) => acc + order.total, 0);
   const totalOrders = MOCK_ORDERS.length;
   const lowStockProducts = products.filter(p => p.stock < 10);
   
-  // Placeholder for real analytics data
   const data: any[] = [];
   const pieData: any[] = [];
   
-  const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EC4899'];
+  const COLORS = ['#ef4444', '#10B981', '#F59E0B', '#6366f1'];
 
   const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
@@ -62,10 +60,10 @@ const AdminDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
         <div className="mt-4 md:mt-0 flex space-x-3">
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             Export Report
           </button>
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 shadow-sm">
+          <button className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 shadow-sm transition-colors">
             + New Campaign
           </button>
         </div>
@@ -77,7 +75,7 @@ const AdminDashboard: React.FC = () => {
           title="Total Revenue" 
           value={`${CURRENCY}${totalRevenue.toLocaleString()}`} 
           icon={DollarSign} 
-          color="indigo" 
+          color="red" 
           trend={0} 
         />
         <StatCard 
@@ -114,15 +112,15 @@ const AdminDashboard: React.FC = () => {
                 <AreaChart data={data}>
                   <defs>
                     <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                  <Area type="monotone" dataKey="uv" stroke="#4F46E5" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="uv" stroke="#ef4444" fillOpacity={1} fill="url(#colorUv)" strokeWidth={3} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -158,19 +156,6 @@ const AdminDashboard: React.FC = () => {
                <EmptyState message="No sales categories found" />
              )}
           </div>
-          {pieData.length > 0 && (
-            <div className="mt-4 space-y-3">
-              {pieData.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                    <span className="text-gray-600">{entry.name}</span>
-                  </div>
-                  <span className="font-medium text-gray-900">{((entry.value / 1200) * 100).toFixed(0)}%</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 

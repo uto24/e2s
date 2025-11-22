@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, DollarSign } from 'lucide-react';
+import { Save, Sliders, Power } from 'lucide-react';
 import { useShop } from '../services/store';
-import { CURRENCY } from '../constants';
 
 const AdminSettings: React.FC = () => {
   const { settings, updateSettings } = useShop();
   const [localSettings, setLocalSettings] = useState(settings);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Sync local state if global settings change externally (initial load)
   useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
@@ -22,7 +20,6 @@ const AdminSettings: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Ensure numbers are saved as numbers
     const payload = {
       ...localSettings,
       taxRate: Number(localSettings.taxRate),
@@ -46,7 +43,7 @@ const AdminSettings: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
         <button 
           onClick={handleSave}
-          className={`flex items-center px-4 py-2 rounded-lg text-white shadow-sm w-full sm:w-auto justify-center transition-colors ${isSaved ? 'bg-green-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+          className={`flex items-center px-4 py-2 rounded-lg text-white shadow-sm w-full sm:w-auto justify-center transition-colors ${isSaved ? 'bg-green-600' : 'bg-red-600 hover:bg-red-700'}`}
         >
           <Save size={18} className="mr-2" />
           {isSaved ? 'Saved!' : 'Save Changes'}
@@ -70,7 +67,7 @@ const AdminSettings: React.FC = () => {
                   name="appName"
                   value={localSettings.appName}
                   onChange={handleChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />
               </div>
             </div>
@@ -84,7 +81,7 @@ const AdminSettings: React.FC = () => {
                   step="0.01"
                   value={localSettings.taxRate}
                   onChange={handleChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                  className="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />
               </div>
             </div>
@@ -107,7 +104,7 @@ const AdminSettings: React.FC = () => {
           <div className="flex items-center">
             <button 
                onClick={toggleMaintenance}
-               className={`${localSettings.maintenanceMode ? 'bg-indigo-600' : 'bg-gray-200'} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+               className={`${localSettings.maintenanceMode ? 'bg-red-600' : 'bg-gray-200'} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
             >
               <span className={`${localSettings.maintenanceMode ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}></span>
             </button>
