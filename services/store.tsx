@@ -16,7 +16,7 @@ import { auth, googleProvider } from './firebase';
 // --- Shop Context ---
 interface ShopContextType {
   products: Product[];
-  orders: Order[]; // Added orders to context interface
+  orders: Order[];
   settings: AppSettings;
   addProduct: (product: Product) => void;
   updateProduct: (id: string, data: Partial<Product>) => void;
@@ -31,14 +31,14 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  // Initialize orders with empty array initially
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load data from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('e2s_products');
     const savedSettings = localStorage.getItem('e2s_settings');
-    const savedOrders = localStorage.getItem('e2s_orders'); // Load saved orders
+    const savedOrders = localStorage.getItem('e2s_orders');
     
     if (savedProducts) {
       try {
@@ -58,25 +58,29 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setOrders(JSON.parse(savedOrders));
       } catch (e) { console.error("Failed to parse orders", e); }
     } else {
-      // Use MOCK_ORDERS as initial data if no local data exists
       setOrders(MOCK_ORDERS);
     }
+
+    setIsLoaded(true); // Mark as loaded
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('e2s_products', JSON.stringify(products));
-  }, [products]);
+    if (isLoaded) {
+      localStorage.setItem('e2s_products', JSON.stringify(products));
+    }
+  }, [products, isLoaded]);
 
   useEffect(() => {
-    localStorage.setItem('e2s_settings', JSON.stringify(settings));
-  }, [settings]);
+    if (isLoaded) {
+      localStorage.setItem('e2s_settings', JSON.stringify(settings));
+    }
+  }, [settings, isLoaded]);
 
-  // Persist orders whenever they change
   useEffect(() => {
-    if (orders.length > 0) {
+    if (isLoaded) {
       localStorage.setItem('e2s_orders', JSON.stringify(orders));
     }
-  }, [orders]);
+  }, [orders, isLoaded]);
 
   const addProduct = (product: Product) => {
     setProducts(prev => [product, ...prev]);

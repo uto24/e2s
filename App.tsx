@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, CartProvider, ShopProvider } from './services/store';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
@@ -45,43 +44,41 @@ const AppLogic: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <HelmetProvider>
-      <AuthProvider>
-        <ShopProvider>
-          <CartProvider>
-            <Router>
-              <AppLogic />
-              <Routes>
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="affiliates" element={<AdminAffiliates />} />
-                  <Route path="finance" element={<AdminAffiliates />} /> {/* Shared for now */}
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
+    <AuthProvider>
+      <ShopProvider>
+        <CartProvider>
+          <Router>
+            <AppLogic />
+            <Routes>
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="affiliates" element={<AdminAffiliates />} />
+                <Route path="finance" element={<AdminAffiliates />} /> {/* Shared for now */}
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
 
-                {/* Public Routes */}
-                <Route path="/" element={<Layout><Home /></Layout>} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
-                <Route path="/cart" element={<Layout><Cart /></Layout>} />
-                <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
-                <Route path="/affiliate" element={<Layout><AffiliateDashboard /></Layout>} />
-                <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                
-                {/* Placeholders */}
-                <Route path="/categories" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Categories</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
-                <Route path="/search" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Search</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
-                
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Router>
-          </CartProvider>
-        </ShopProvider>
-      </AuthProvider>
-    </HelmetProvider>
+              {/* Public Routes */}
+              <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
+              <Route path="/cart" element={<Layout><Cart /></Layout>} />
+              <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+              <Route path="/affiliate" element={<Layout><AffiliateDashboard /></Layout>} />
+              <Route path="/profile" element={<Layout><Profile /></Layout>} />
+              
+              {/* Placeholders */}
+              <Route path="/categories" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Categories</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
+              <Route path="/search" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Search</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
+              
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </CartProvider>
+      </ShopProvider>
+    </AuthProvider>
   );
 };
 

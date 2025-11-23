@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, DollarSign, ChevronRight, Share2, Info, Box, CornerUpLeft, Check, Facebook, MessageCircle, Send, Link as LinkIcon } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
@@ -48,6 +47,29 @@ const ProductDetail: React.FC = () => {
     }
   }, [id, navigate, products]);
 
+  // Handle SEO / Document Title manually
+  useEffect(() => {
+    if (product) {
+      document.title = `${product.title} | ${CURRENCY}${product.price}`;
+      // Note: Client-side meta tag updates might not be picked up by all social crawlers
+      // but this is the best we can do without SSR.
+      
+      // Update basic meta description if it exists
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', product.description.replace(/<[^>]*>?/gm, '').substring(0, 150));
+      }
+      
+      // Update OG Title if it exists
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', product.title);
+      
+      // Update OG Image if it exists
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) ogImage.setAttribute('content', product.image);
+    }
+  }, [product]);
+
   if (!product) return <div className="flex justify-center items-center h-screen bg-white"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-600"></div></div>;
 
   const relatedProducts = products
@@ -68,7 +90,6 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleCopyLink = () => {
-    // Using window.location.href which now works correctly with HashRouter for sharing
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => {
@@ -116,7 +137,6 @@ const ProductDetail: React.FC = () => {
       setReviewComment('');
       setReviewRating(5);
       setIsSubmittingReview(false);
-      // Manually update local product state to show review immediately without re-fetch
       setProduct(prev => prev ? {
           ...prev,
           reviews: [newReview, ...(prev.reviews || [])],
@@ -130,29 +150,14 @@ const ProductDetail: React.FC = () => {
   const affiliateProfit = Math.max(0, sellingPrice - (product.wholesalePrice || sellingPrice));
   const isReseller = user?.role === UserRole.AFFILIATE || user?.role === UserRole.SELLER || user?.role === UserRole.ADMIN;
   
-  // Fallback gallery if no extra images provided
   const galleryImages = product.images && product.images.length > 0 
     ? product.images 
     : [product.image, product.image, product.image];
 
   const reviews = product.reviews || [];
-  const cleanDesc = product.description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12 animate-fade-in">
-      {/* Dynamic SEO Meta Tags */}
-      <Helmet>
-        <title>{product.title} | ই-শপ</title>
-        <meta name="description" content={cleanDesc} />
-        <meta property="og:title" content={product.title} />
-        <meta property="og:description" content={cleanDesc} />
-        <meta property="og:image" content={product.image} />
-        <meta property="og:url" content={window.location.href} />
-        <meta property="og:type" content="product" />
-        <meta property="product:price:amount" content={sellingPrice.toString()} />
-        <meta property="product:price:currency" content="BDT" />
-      </Helmet>
-
       {/* Breadcrumbs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -465,7 +470,7 @@ const ProductDetail: React.FC = () => {
             {activeTab === 'reviews' && (
                 <div className="animate-fade-in">
                     <div className="grid md:grid-cols-12 gap-8">
-                        {/* Review Form (Left Side on Desktop) */}
+                        {/* Review Form */}
                         <div className="md:col-span-4">
                              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm sticky top-24">
                                 <h3 className="text-lg font-bold text-gray-900 mb-4">আপনার মতামত দিন</h3>
@@ -517,7 +522,7 @@ const ProductDetail: React.FC = () => {
                              </div>
                         </div>
 
-                        {/* Review List (Right Side) */}
+                        {/* Review List */}
                         <div className="md:col-span-8">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">কাস্টমার রিভিউ ({reviews.length})</h3>
                             {reviews.length > 0 ? (
