@@ -23,11 +23,12 @@ export interface User {
   uid: string;
   name: string;
   email: string;
-  phone?: string; // New field
-  address?: string; // New field
+  phone?: string; 
+  address?: string; 
   role: UserRole;
   affiliate_id?: string;
   balance: number;
+  points: number; // Loyalty points
   avatar?: string;
   joinedAt?: string;
   status?: 'active' | 'banned';

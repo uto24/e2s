@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle } from 'lucide-react';
+import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle, Inbox } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { OrderStatus } from '../types';
 import { useShop } from '../services/store';
@@ -23,13 +23,16 @@ const AdminOrders: React.FC = () => {
       case 'cancelled':
         return <span className="flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle size={12} className="mr-1"/> Cancelled</span>;
       default:
-        return <span className="flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>;
+        return <span className="flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock size={12} className="mr-1"/> Pending</span>;
     }
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+        <div className="text-sm text-gray-500">Total: {orders.length} orders</div>
+      </div>
 
       {/* Stats Filters */}
       <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -39,7 +42,7 @@ const AdminOrders: React.FC = () => {
             onClick={() => setActiveFilter(status as any)}
             className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${
               activeFilter === status 
-                ? 'bg-green-600 text-white' 
+                ? 'bg-green-600 text-white shadow-md' 
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -48,7 +51,7 @@ const AdminOrders: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -65,7 +68,7 @@ const AdminOrders: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrders.length > 0 ? (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
+                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">#{order.id}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
@@ -78,7 +81,7 @@ const AdminOrders: React.FC = () => {
                       {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{CURRENCY}{order.total.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.paymentMethod}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 uppercase">{order.paymentMethod}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button className="text-gray-400 hover:text-green-600 p-1" title="View Details">
@@ -93,10 +96,11 @@ const AdminOrders: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-20 text-center text-gray-500">
                     <div className="flex flex-col items-center justify-center">
-                      <AlertTriangle size={32} className="text-gray-300 mb-2" />
-                      <p>No orders found matching this filter.</p>
+                      <Inbox size={48} className="text-gray-300 mb-4" />
+                      <p className="text-lg font-medium text-gray-900">No orders found</p>
+                      <p className="text-sm text-gray-500 mt-1">There are no orders matching the current filter.</p>
                     </div>
                   </td>
                 </tr>

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart, useAuth, useShop } from '../services/store';
 import { CURRENCY } from '../constants';
-import { MapPin, Phone, User, CheckCircle, AlertCircle, ArrowRight, CreditCard } from 'lucide-react';
+import { MapPin, Phone, User, CheckCircle, AlertCircle, ArrowRight, CreditCard, Gift } from 'lucide-react';
 
 type PaymentMethod = 'cod' | 'bkash' | 'nagad' | 'rocket';
 
 const Checkout: React.FC = () => {
   const { items, total, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, addPoints } = useAuth();
   const { settings, placeOrder } = useShop();
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ const Checkout: React.FC = () => {
   const [senderNumber, setSenderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   useEffect(() => {
     if (items.length === 0 && !orderSuccess) {
@@ -45,6 +46,9 @@ const Checkout: React.FC = () => {
 
   const taxAmount = total * (settings.taxRate / 100);
   const grandTotal = total + shippingCost + taxAmount;
+  
+  // Calculate potential points (1 point per 100 currency)
+  const potentialPoints = Math.floor(total / 100);
 
   const isCodAvailable = items.every(item => item.isCodAvailable);
 
@@ -64,19 +68,27 @@ const Checkout: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await placeOrder({
+      const newOrder = {
         id: Math.random().toString(36).substr(2, 9).toUpperCase(),
         customer: formData.name,
         email: user?.email || 'guest@example.com',
         total: grandTotal,
-        status: 'pending',
+        status: 'pending' as const,
         date: new Date().toLocaleDateString(),
         items: items.reduce((acc, item) => acc + item.quantity, 0),
         paymentMethod,
         shippingAddress: formData,
         transactionId: paymentMethod !== 'cod' ? transactionId : undefined,
         senderNumber: paymentMethod !== 'cod' ? senderNumber : undefined
-      });
+      };
+
+      await placeOrder(newOrder);
+      
+      // Award Points
+      if (user && potentialPoints > 0) {
+        await addPoints(potentialPoints);
+        setEarnedPoints(potentialPoints);
+      }
 
       clearCart();
       setOrderSuccess(true);
@@ -91,12 +103,29 @@ const Checkout: React.FC = () => {
   if (orderSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 animate-fade-in">
-        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full border border-gray-100">
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full border border-gray-100 relative overflow-hidden">
+          {earnedPoints > 0 && (
+              <div className="absolute top-0 right-0 p-4">
+                  <div className="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full flex items-center animate-bounce">
+                      <Gift size={14} className="mr-1" /> +{earnedPoints} Points
+                  </div>
+              </div>
+          )}
+          
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle size={40} className="text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">অর্ডার কনফার্মড!</h2>
-          <p className="text-gray-500 mb-8">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
+          <p className="text-gray-500 mb-6">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
+          
+          {earnedPoints > 0 && (
+             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl mb-8 border border-yellow-100">
+                <p className="font-bold text-gray-800 flex justify-center items-center">
+                    <Gift className="text-orange-500 mr-2" /> অভিনন্দন! আপনি {earnedPoints} পয়েন্ট পেয়েছেন।
+                </p>
+             </div>
+          )}
+
           <button 
             onClick={() => navigate('/')}
             className="w-full py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
@@ -311,6 +340,12 @@ const Checkout: React.FC = () => {
                         <div className="flex justify-between text-gray-600">
                             <span>ভ্যাট ({settings.taxRate}%)</span>
                             <span className="font-medium text-gray-900">{CURRENCY}{taxAmount.toLocaleString()}</span>
+                        </div>
+                    )}
+                    {potentialPoints > 0 && (
+                        <div className="flex justify-between text-green-600 font-medium border-t border-dashed border-green-200 pt-2">
+                            <span className="flex items-center"><Gift size={14} className="mr-1"/> রিওয়ার্ড পয়েন্ট</span>
+                            <span>+{potentialPoints}</span>
                         </div>
                     )}
                     <div className="border-t border-gray-200 pt-3 flex justify-between items-center">

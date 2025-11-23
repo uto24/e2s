@@ -55,7 +55,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (savedOrders) {
       try {
-        setOrders(JSON.parse(savedOrders));
+        const parsedOrders = JSON.parse(savedOrders);
+        if (Array.isArray(parsedOrders)) {
+          setOrders(parsedOrders);
+        } else {
+          setOrders(MOCK_ORDERS);
+        }
       } catch (e) { console.error("Failed to parse orders", e); }
     } else {
       setOrders(MOCK_ORDERS);
@@ -102,7 +107,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
         const updatedReviews = [review, ...(p.reviews || [])];
-        // Recalculate rating
         const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
         const newRating = parseFloat((totalRating / updatedReviews.length).toFixed(1));
         
@@ -118,8 +122,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-      // Update local state
-      setOrders(prev => [order, ...prev]);
+      setOrders(prev => {
+        const newOrders = [order, ...prev];
+        // Force save immediately to ensure persistence across navigations
+        localStorage.setItem('e2s_orders', JSON.stringify(newOrders));
+        return newOrders;
+      });
       return Promise.resolve();
   };
 
@@ -144,6 +152,7 @@ interface AuthContextType {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   updateUserProfile: (data: { name?: string; password?: string; phone?: string; address?: string }) => Promise<void>;
+  addPoints: (points: number) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -158,7 +167,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const mapUser = (fbUser: FirebaseUser): User => {
     const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
-    // Try to retrieve extended info from local storage for now (mocking DB)
     const storedExtra = localStorage.getItem(`user_extra_${fbUser.uid}`);
     const extra = storedExtra ? JSON.parse(storedExtra) : {};
 
@@ -169,6 +177,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role: role,
       affiliate_id: fbUser.uid.substring(0, 8),
       balance: 0,
+      points: extra.points || 0, // Load points from local storage
       avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`,
       joinedAt: fbUser.metadata.creationTime,
       phone: extra.phone || '',
@@ -231,16 +240,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await updatePassword(auth.currentUser, data.password);
       }
       
-      // Store extra fields in local storage to persist them for this demo
       const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
+      const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
+      
       const newExtra = {
-          ...(currentExtra ? JSON.parse(currentExtra) : {}),
+          ...extraParsed,
           ...(data.phone && { phone: data.phone }),
           ...(data.address && { address: data.address })
       };
       localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
       
-      // Update local state
       setUser(prev => prev ? { 
           ...prev, 
           name: data.name || prev.name,
@@ -250,6 +259,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error("Profile update failed", error);
       throw error;
+    }
+  };
+
+  const addPoints = async (points: number) => {
+    if (!auth.currentUser || !user) return;
+    
+    try {
+        const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
+        const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
+        const currentPoints = extraParsed.points || 0;
+        const newPoints = currentPoints + points;
+
+        const newExtra = {
+            ...extraParsed,
+            points: newPoints
+        };
+        localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
+
+        setUser(prev => prev ? { ...prev, points: newPoints } : null);
+    } catch (error) {
+        console.error("Failed to add points", error);
     }
   };
 
@@ -269,6 +299,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       loginWithEmail, 
       registerWithEmail,
       updateUserProfile,
+      addPoints,
       logout, 
       isAuthenticated: !!user 
     }}>
