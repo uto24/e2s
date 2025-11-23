@@ -6,17 +6,37 @@ import { Navigate } from 'react-router-dom';
 import { Order, OrderStatus } from '../types';
 
 const Profile: React.FC = () => {
-  const { user, logout, updateUserProfile } = useAuth();
+  const { user, logout, updateUserProfile, loading } = useAuth();
   const { orders } = useShop(); 
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'settings'>('overview');
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
+    name: '',
+    phone: '',
+    address: '',
     password: ''
   });
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+  // Initialize form data when user loads
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        password: ''
+      });
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 

@@ -24,6 +24,7 @@ interface ShopContextType {
   updateSettings: (newSettings: AppSettings) => void;
   addReview: (productId: string, review: Review) => void;
   placeOrder: (order: Order) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => void;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -34,16 +35,17 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load data from localStorage
+  // Load data from localStorage on Mount
   useEffect(() => {
     const savedProducts = localStorage.getItem('e2s_products');
     const savedSettings = localStorage.getItem('e2s_settings');
     const savedOrders = localStorage.getItem('e2s_orders');
     
+    // Load Products
     if (savedProducts) {
       try {
         const parsed = JSON.parse(savedProducts);
-        // If array is empty, load defaults (fixes "unlogined person no products" if LS is cleared)
+        // If array is empty or invalid, load defaults so shop isn't empty
         if (Array.isArray(parsed) && parsed.length > 0) {
             setProducts(parsed);
         } else {
@@ -57,6 +59,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setProducts(DEFAULT_PRODUCTS);
     }
     
+    // Load Settings
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
@@ -64,41 +67,42 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (e) { console.error("Failed to parse settings", e); }
     }
 
+    // Load Orders
     if (savedOrders) {
       try {
         const parsedOrders = JSON.parse(savedOrders);
         if (Array.isArray(parsedOrders)) {
           setOrders(parsedOrders);
         } else {
-          setOrders(MOCK_ORDERS);
+          setOrders([]);
         }
-      } catch (e) { console.error("Failed to parse orders", e); }
+      } catch (e) { 
+        console.error("Failed to parse orders", e); 
+        setOrders([]);
+      }
     } else {
-      setOrders(MOCK_ORDERS);
+      setOrders([]);
     }
 
     setIsLoaded(true); // Mark as loaded
   }, []);
 
+  // Auto-save Products
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('e2s_products', JSON.stringify(products));
     }
   }, [products, isLoaded]);
 
+  // Auto-save Settings
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('e2s_settings', JSON.stringify(settings));
     }
   }, [settings, isLoaded]);
 
-  // Order saving is handled directly in placeOrder for reliability, 
-  // but this effect keeps things in sync if state changes elsewhere
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('e2s_orders', JSON.stringify(orders));
-    }
-  }, [orders, isLoaded]);
+  // IMPORTANT: We REMOVED the auto-save useEffect for ORDERS.
+  // Saving is now handled explicitly in placeOrder and updateOrderStatus to prevent overwrites.
 
   const addProduct = (product: Product) => {
     setProducts(prev => [product, ...prev]);
@@ -135,18 +139,42 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-      // Direct update to ensure persistence avoids race conditions
-      const currentOrders = JSON.parse(localStorage.getItem('e2s_orders') || '[]');
+      // 1. Read current state directly from Storage to ensure we have the latest data
+      const currentOrdersStr = localStorage.getItem('e2s_orders');
+      let currentOrders: Order[] = [];
+      try {
+          if (currentOrdersStr) {
+             currentOrders = JSON.parse(currentOrdersStr);
+          }
+      } catch(e) { console.error("Error reading orders for placement", e); }
+      
+      // 2. Append new order
       const updatedOrders = [order, ...currentOrders];
+      
+      // 3. Write back to Storage immediately
       localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
       
-      // Update state
-      setOrders(prev => [order, ...prev]);
+      // 4. Update React State
+      setOrders(updatedOrders);
+      
       return Promise.resolve();
   };
 
+  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+      const currentOrdersStr = localStorage.getItem('e2s_orders');
+      let currentOrders: Order[] = [];
+      try {
+          if (currentOrdersStr) currentOrders = JSON.parse(currentOrdersStr);
+      } catch(e) { }
+
+      const updatedOrders = currentOrders.map(o => o.id === orderId ? { ...o, status } : o);
+      
+      localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
+      setOrders(updatedOrders);
+  };
+
   return (
-    <ShopContext.Provider value={{ products, orders, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder }}>
+    <ShopContext.Provider value={{ products, orders, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder, updateOrderStatus }}>
       {children}
     </ShopContext.Provider>
   );
@@ -283,16 +311,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
         const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
         const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
-        const currentPoints = extraParsed.points || 0;
-        const newPoints = currentPoints + amount;
+        const currentPoints = (extraParsed.points || 0) + amount;
 
         const newExtra = {
             ...extraParsed,
-            points: newPoints
+            points: currentPoints
         };
         localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
 
-        setUser(prev => prev ? { ...prev, points: newPoints } : null);
+        setUser(prev => prev ? { ...prev, points: currentPoints } : null);
     } catch (error) {
         console.error("Failed to add points", error);
     }
