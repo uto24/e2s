@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle, Inbox } from 'lucide-react';
+import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle, Inbox, RefreshCw } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { OrderStatus } from '../types';
 import { useShop } from '../services/store';
@@ -31,7 +31,16 @@ const AdminOrders: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
-        <div className="text-sm text-gray-500">Total: {orders.length} orders</div>
+        <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Total: {orders.length}</span>
+            <button 
+                onClick={() => window.location.reload()} 
+                className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                title="Refresh Data"
+            >
+                <RefreshCw size={18} />
+            </button>
+        </div>
       </div>
 
       {/* Stats Filters */}
@@ -100,7 +109,11 @@ const AdminOrders: React.FC = () => {
                     <div className="flex flex-col items-center justify-center">
                       <Inbox size={48} className="text-gray-300 mb-4" />
                       <p className="text-lg font-medium text-gray-900">No orders found</p>
-                      <p className="text-sm text-gray-500 mt-1">There are no orders matching the current filter.</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                          {activeFilter === 'all' 
+                            ? "No orders have been placed yet." 
+                            : `There are no orders with status: ${activeFilter}`}
+                      </p>
                     </div>
                   </td>
                 </tr>

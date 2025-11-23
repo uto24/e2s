@@ -84,7 +84,7 @@ const Checkout: React.FC = () => {
 
       await placeOrder(newOrder);
       
-      // Award Points
+      // Award Points if user is logged in
       if (user && potentialPoints > 0) {
         await addPoints(potentialPoints);
         setEarnedPoints(potentialPoints);

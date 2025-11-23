@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
-import { DEFAULT_SETTINGS, MOCK_ORDERS } from '../constants';
+import { DEFAULT_SETTINGS, MOCK_ORDERS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -42,8 +42,19 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (savedProducts) {
       try {
-        setProducts(JSON.parse(savedProducts));
-      } catch (e) { console.error("Failed to parse products", e); }
+        const parsed = JSON.parse(savedProducts);
+        // If array is empty, load defaults (fixes "unlogined person no products" if LS is cleared)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(parsed);
+        } else {
+            setProducts(DEFAULT_PRODUCTS);
+        }
+      } catch (e) { 
+          console.error("Failed to parse products", e); 
+          setProducts(DEFAULT_PRODUCTS);
+      }
+    } else {
+        setProducts(DEFAULT_PRODUCTS);
     }
     
     if (savedSettings) {
@@ -81,6 +92,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [settings, isLoaded]);
 
+  // Order saving is handled directly in placeOrder for reliability, 
+  // but this effect keeps things in sync if state changes elsewhere
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('e2s_orders', JSON.stringify(orders));
@@ -122,12 +135,13 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-      setOrders(prev => {
-        const newOrders = [order, ...prev];
-        // Force save immediately to ensure persistence across navigations
-        localStorage.setItem('e2s_orders', JSON.stringify(newOrders));
-        return newOrders;
-      });
+      // Direct update to ensure persistence avoids race conditions
+      const currentOrders = JSON.parse(localStorage.getItem('e2s_orders') || '[]');
+      const updatedOrders = [order, ...currentOrders];
+      localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
+      
+      // Update state
+      setOrders(prev => [order, ...prev]);
       return Promise.resolve();
   };
 
@@ -167,6 +181,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const mapUser = (fbUser: FirebaseUser): User => {
     const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
+    // Load extra data (phone, address, points) from localStorage since we don't have a backend DB
     const storedExtra = localStorage.getItem(`user_extra_${fbUser.uid}`);
     const extra = storedExtra ? JSON.parse(storedExtra) : {};
 
@@ -177,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role: role,
       affiliate_id: fbUser.uid.substring(0, 8),
       balance: 0,
-      points: extra.points || 0, // Load points from local storage
+      points: extra.points || 0, // Load points
       avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`,
       joinedAt: fbUser.metadata.creationTime,
       phone: extra.phone || '',
@@ -262,14 +277,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const addPoints = async (points: number) => {
+  const addPoints = async (amount: number) => {
     if (!auth.currentUser || !user) return;
     
     try {
         const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
         const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
         const currentPoints = extraParsed.points || 0;
-        const newPoints = currentPoints + points;
+        const newPoints = currentPoints + amount;
 
         const newExtra = {
             ...extraParsed,
