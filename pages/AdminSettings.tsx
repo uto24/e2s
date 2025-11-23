@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, Megaphone, Database, Check } from 'lucide-react';
+import { Save, Sliders, Power, Megaphone, Database, Check, UploadCloud } from 'lucide-react';
 import { useShop } from '../services/store';
 import { DEFAULT_SETTINGS } from '../constants';
 
@@ -46,6 +46,8 @@ const AdminSettings: React.FC = () => {
   };
   
   const handleSeed = async () => {
+      if (!window.confirm("This will add default products to your online database. Continue?")) return;
+      
       setSeeding(true);
       try {
           await seedDatabase();
@@ -53,7 +55,7 @@ const AdminSettings: React.FC = () => {
           setTimeout(() => setIsSeeded(false), 3000);
       } catch (error) {
           console.error(error);
-          alert("Failed to seed database. Check console.");
+          alert("Failed to seed database. Check console for permissions or errors.");
       } finally {
           setSeeding(false);
       }
@@ -98,22 +100,23 @@ const AdminSettings: React.FC = () => {
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Database Tools</h3>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mb-4">Initialize your shop with sample data if the product list is empty.</p>
+          <p className="text-sm text-gray-500 mb-4">Manage your online database content.</p>
           
-          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
              <div className="text-sm">
-                 <span className="font-medium text-gray-700">Products in DB:</span> {products.length}
+                 <p className="font-bold text-blue-900">Products in Database: {products.length}</p>
+                 <p className="text-blue-700 text-xs mt-1">If this is 0, your shop will look empty.</p>
              </div>
              <button 
                onClick={handleSeed}
-               disabled={seeding || products.length > 0}
-               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
-                   products.length > 0 
-                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+               disabled={seeding}
+               className={`px-4 py-2 rounded-md text-sm font-bold transition-colors flex items-center shadow-sm ${
+                   seeding 
+                   ? 'bg-gray-300 text-gray-600 cursor-wait' 
                    : 'bg-blue-600 text-white hover:bg-blue-700'
                }`}
              >
-                 {seeding ? 'Processing...' : isSeeded ? <><Check size={16} className="mr-1"/> Done</> : 'Seed Products'}
+                 {seeding ? 'Uploading...' : isSeeded ? <><Check size={16} className="mr-1"/> Done</> : <><UploadCloud size={16} className="mr-2"/> Seed Products</>}
              </button>
           </div>
         </div>

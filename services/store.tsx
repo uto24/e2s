@@ -51,11 +51,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Real-time Listeners
   useEffect(() => {
-    // Products
+    // Products Listener
     const qProducts = query(collection(db, "products"));
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
       const productsData: Product[] = [];
       snapshot.forEach((doc) => {
+        // Ensure id comes from doc.id if not in data, or overwrite
         productsData.push({ ...doc.data(), id: doc.id } as Product);
       });
       setProducts(productsData);
@@ -63,9 +64,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Error fetching products from DB:", error);
     });
 
-    // Orders
-    // Removed orderBy("date", "desc") from query to prevent "Missing Index" errors in Firestore
-    // which causes data to disappear. We sort client-side instead.
+    // Orders Listener
+    // Note: Removed orderBy("date", "desc") to prevent "index required" errors on new Firebase projects.
+    // We sort client-side instead.
     const qOrders = query(collection(db, "orders"));
     const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       const ordersData: Order[] = [];
@@ -73,7 +74,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ordersData.push({ ...doc.data(), id: doc.id } as Order); 
       });
       
-      // Client-side Sort: Newest first
+      // Client-side Sort: Newest first based on ISO date or 'createdAt'
       ordersData.sort((a, b) => {
         const dateA = new Date((a as any).createdAt || a.date).getTime();
         const dateB = new Date((b as any).createdAt || b.date).getTime();
@@ -85,7 +86,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Error fetching orders from DB:", error);
     });
 
-    // Settings
+    // Settings Listener
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (doc) => {
       if (doc.exists()) {
         setSettings({ ...DEFAULT_SETTINGS, ...doc.data() as AppSettings });
@@ -105,6 +106,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addProduct = async (product: Product) => {
+    // Remove ID if present so Firestore generates it, or use setDoc if we want to force ID
     const { id, ...rest } = product; 
     await addDoc(collection(db, "products"), rest);
   };
@@ -139,10 +141,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-    const { id, ...orderData } = order;
-    await addDoc(collection(db, "orders"), {
-      ...orderData,
-      createdAt: new Date().toISOString() // Helper for efficient sorting
+    // We use setDoc with the order.id generated in Checkout to ensure consistency
+    await setDoc(doc(db, "orders", order.id), {
+      ...order,
+      createdAt: new Date().toISOString() // Helper for sorting
     });
   };
 
@@ -151,25 +153,29 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const refreshData = () => {
-    console.log("Real-time connection active: Data stays fresh automatically.");
+    // With onSnapshot, data is always fresh. This is kept for interface compatibility.
+    console.log("Data is synchronized with Firestore.");
   };
 
-  // Function to seed database with mock data if needed
+  // Seed Function: Uploads default products to Firestore
   const seedDatabase = async () => {
     const batch = writeBatch(db);
     
-    // Seed Products if empty
-    if (products.length === 0) {
-      console.log("Seeding products...");
-      DEFAULT_PRODUCTS.forEach(p => {
-        const { id, ...data } = p;
-        const ref = doc(collection(db, "products"));
-        batch.set(ref, data);
-      });
-    }
+    // 1. Seed Products
+    // We only add products if they don't look like they exist, but for batch we just add new ones
+    console.log("Seeding products...");
+    DEFAULT_PRODUCTS.forEach(p => {
+      const { id, ...data } = p; // Let Firestore generate IDs or use specific ones
+      const ref = doc(collection(db, "products")); // Auto ID
+      batch.set(ref, data);
+    });
     
+    // 2. Ensure Settings Exist
+    const settingsRef = doc(db, "settings", "global");
+    batch.set(settingsRef, DEFAULT_SETTINGS, { merge: true });
+
     await batch.commit();
-    console.log("Database seeded!");
+    console.log("Database seeded successfully!");
   };
 
   return (
@@ -232,13 +238,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser({
             uid: currentUser.uid,
             email: currentUser.email || '',
-            name: currentUser.displayName || firestoreData.name || 'User',
-            avatar: currentUser.photoURL || firestoreData.avatar || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`,
+            name: firestoreData.name || currentUser.displayName || 'User',
+            avatar: firestoreData.avatar || currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`,
             role: firestoreData.role || (currentUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER),
             affiliate_id: firestoreData.affiliate_id || currentUser.uid.substring(0, 8),
             balance: firestoreData.balance || 0,
             points: firestoreData.points || 0,
-            joinedAt: currentUser.metadata.creationTime,
+            joinedAt: firestoreData.joinedAt || currentUser.metadata.creationTime,
             phone: firestoreData.phone || '',
             address: firestoreData.address || ''
           });
@@ -289,7 +295,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const registerWithEmail = async (email: string, pass: string, name: string) => {
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      await createUserWithEmailAndPassword(auth, email, pass);
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: name });
         // The onAuthStateChanged listener will handle creating the Firestore doc

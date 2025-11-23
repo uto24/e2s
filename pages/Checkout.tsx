@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart, useAuth, useShop } from '../services/store';
 import { CURRENCY } from '../constants';
-import { MapPin, Phone, User, CheckCircle, AlertCircle, ArrowRight, CreditCard, Gift } from 'lucide-react';
+import { MapPin, Phone, User, CheckCircle, AlertCircle, ArrowRight, CreditCard, Gift, Loader } from 'lucide-react';
 
 type PaymentMethod = 'cod' | 'bkash' | 'nagad' | 'rocket';
 
@@ -80,8 +80,9 @@ const Checkout: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      const orderId = Math.random().toString(36).substr(2, 9).toUpperCase();
       const newOrder = {
-        id: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        id: orderId,
         customer: formData.name,
         // Crucial: Use logged-in email. If not logged in, prompt or use default.
         email: user ? user.email : 'guest@example.com', 
@@ -95,6 +96,7 @@ const Checkout: React.FC = () => {
         senderNumber: paymentMethod !== 'cod' ? senderNumber : undefined
       };
 
+      // Ensure this is properly awaited to save to Firebase
       await placeOrder(newOrder);
       
       // Award Points if user is logged in
@@ -129,7 +131,7 @@ const Checkout: React.FC = () => {
             <CheckCircle size={40} className="text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">অর্ডার কনফার্মড!</h2>
-          <p className="text-gray-500 mb-6">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে ডাটাবেসে সেভ হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
+          <p className="text-gray-500 mb-6">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে অনলাইন ডাটাবেসে সেভ হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
           
           {earnedPoints > 0 && (
              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl mb-8 border border-yellow-100">
@@ -373,7 +375,7 @@ const Checkout: React.FC = () => {
                     className="w-full mt-6 py-4 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex justify-center items-center disabled:opacity-70"
                 >
                     {isSubmitting ? (
-                      <span className="animate-pulse">অর্ডার প্রসেস হচ্ছে...</span>
+                      <span className="flex items-center"><Loader className="animate-spin mr-2" size={20}/> অর্ডার প্রসেস হচ্ছে...</span>
                     ) : (
                       <>কনফার্ম অর্ডার <ArrowRight size={20} className="ml-2" /></>
                     )}
