@@ -8,7 +8,7 @@ const AdminOrders: React.FC = () => {
   const { orders, refreshData } = useShop(); 
   const [activeFilter, setActiveFilter] = useState<OrderStatus | 'all'>('all');
 
-  // Load fresh data on mount
+  // Load fresh data on mount from database
   useEffect(() => {
     refreshData();
   }, []);

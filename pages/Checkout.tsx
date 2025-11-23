@@ -83,9 +83,8 @@ const Checkout: React.FC = () => {
       const newOrder = {
         id: Math.random().toString(36).substr(2, 9).toUpperCase(),
         customer: formData.name,
-        // Crucial: Use logged-in email, or fallback to a generated one if needed. 
-        // If guest checkout was allowed, we'd need an email field. Assuming logged in or OK with guest.
-        email: user?.email || 'guest@example.com', 
+        // Crucial: Use logged-in email. If not logged in, prompt or use default.
+        email: user ? user.email : 'guest@example.com', 
         total: grandTotal,
         status: 'pending' as const,
         date: new Date().toLocaleDateString(),

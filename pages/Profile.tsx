@@ -18,7 +18,7 @@ const Profile: React.FC = () => {
   });
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
-  // Load latest data on mount
+  // Load latest data on mount to ensure we have "database" data
   useEffect(() => {
     refreshData();
   }, []);

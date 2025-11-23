@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
-import { DEFAULT_SETTINGS, MOCK_ORDERS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
+import { DEFAULT_SETTINGS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -11,21 +11,33 @@ import {
   updatePassword,
   User as FirebaseUser 
 } from 'firebase/auth';
-import { auth, googleProvider } from './firebase';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  deleteDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  setDoc, 
+  getDoc 
+} from 'firebase/firestore';
+import { auth, googleProvider, db } from './firebase';
 
 // --- Shop Context ---
 interface ShopContextType {
   products: Product[];
   orders: Order[];
   settings: AppSettings;
-  addProduct: (product: Product) => void;
-  updateProduct: (id: string, data: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  updateSettings: (newSettings: AppSettings) => void;
-  addReview: (productId: string, review: Review) => void;
+  addProduct: (product: Product) => Promise<void>;
+  updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  updateSettings: (newSettings: AppSettings) => Promise<void>;
+  addReview: (productId: string, review: Review) => Promise<void>;
   placeOrder: (order: Order) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: Order['status']) => void;
-  refreshData: () => void; // New function to force reload from "DB"
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
+  refreshData: () => void;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -34,151 +46,98 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [products, setProducts] = useState<Product[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Helper to load all data from storage
-  const loadFromStorage = () => {
-    const savedProducts = localStorage.getItem('e2s_products');
-    const savedSettings = localStorage.getItem('e2s_settings');
-    const savedOrders = localStorage.getItem('e2s_orders');
-    
-    // Load Products
-    if (savedProducts) {
-      try {
-        const parsed = JSON.parse(savedProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            setProducts(parsed);
-        } else {
-            setProducts(DEFAULT_PRODUCTS);
-        }
-      } catch (e) { 
-          setProducts(DEFAULT_PRODUCTS);
-      }
-    } else {
-        setProducts(DEFAULT_PRODUCTS);
-    }
-    
-    // Load Settings
-    if (savedSettings) {
-      try {
-        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
-      } catch (e) { console.error("Failed to parse settings", e); }
-    }
-
-    // Load Orders
-    if (savedOrders) {
-      try {
-        const parsedOrders = JSON.parse(savedOrders);
-        if (Array.isArray(parsedOrders)) {
-          setOrders(parsedOrders);
-        } else {
-          setOrders([]);
-        }
-      } catch (e) { 
-        setOrders([]);
-      }
-    } else {
-      setOrders([]);
-    }
-  };
-
-  // Initial Load
+  // Real-time Listeners
   useEffect(() => {
-    loadFromStorage();
-    setIsLoaded(true);
+    // Products
+    const qProducts = query(collection(db, "products"));
+    const unsubProducts = onSnapshot(qProducts, (snapshot) => {
+      const productsData: Product[] = [];
+      snapshot.forEach((doc) => {
+        productsData.push({ ...doc.data(), id: doc.id } as Product);
+      });
+      setProducts(productsData);
+    });
+
+    // Orders
+    const qOrders = query(collection(db, "orders"), orderBy("date", "desc"));
+    const unsubOrders = onSnapshot(qOrders, (snapshot) => {
+      const ordersData: Order[] = [];
+      snapshot.forEach((doc) => {
+        ordersData.push({ ...doc.data(), id: doc.id } as Order); // Ensure ID maps to Firestore ID
+      });
+      setOrders(ordersData);
+    });
+
+    // Settings
+    const unsubSettings = onSnapshot(doc(db, "settings", "global"), (doc) => {
+      if (doc.exists()) {
+        setSettings({ ...DEFAULT_SETTINGS, ...doc.data() as AppSettings });
+      } else {
+        // Create default settings if not exists
+        setDoc(doc.ref, DEFAULT_SETTINGS);
+      }
+    });
+
+    return () => {
+      unsubProducts();
+      unsubOrders();
+      unsubSettings();
+    };
   }, []);
 
-  // Exposed refresh function
-  const refreshData = () => {
-    loadFromStorage();
+  const addProduct = async (product: Product) => {
+    // Remove ID so Firestore generates it, or use setDoc if ID is pre-generated
+    const { id, ...rest } = product; 
+    await addDoc(collection(db, "products"), rest);
   };
 
-  // Auto-save Products
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('e2s_products', JSON.stringify(products));
+  const updateProduct = async (id: string, data: Partial<Product>) => {
+    await updateDoc(doc(db, "products", id), data);
+  };
+
+  const deleteProduct = async (id: string) => {
+    await deleteDoc(doc(db, "products", id));
+  };
+
+  const updateSettings = async (newSettings: AppSettings) => {
+    await setDoc(doc(db, "settings", "global"), newSettings);
+  };
+
+  const addReview = async (productId: string, review: Review) => {
+    const productRef = doc(db, "products", productId);
+    const productSnap = await getDoc(productRef);
+    if (productSnap.exists()) {
+      const product = productSnap.data() as Product;
+      const updatedReviews = [review, ...(product.reviews || [])];
+      const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
+      const newRating = parseFloat((totalRating / updatedReviews.length).toFixed(1));
+      
+      await updateDoc(productRef, {
+        reviews: updatedReviews,
+        reviews_count: updatedReviews.length,
+        rating: newRating
+      });
     }
-  }, [products, isLoaded]);
-
-  // Auto-save Settings
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('e2s_settings', JSON.stringify(settings));
-    }
-  }, [settings, isLoaded]);
-
-  const addProduct = (product: Product) => {
-    setProducts(prev => [product, ...prev]);
-  };
-
-  const updateProduct = (id: string, data: Partial<Product>) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-  };
-
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-  };
-
-  const updateSettings = (newSettings: AppSettings) => {
-    setSettings(newSettings);
-  };
-
-  const addReview = (productId: string, review: Review) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        const updatedReviews = [review, ...(p.reviews || [])];
-        const totalRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0);
-        const newRating = parseFloat((totalRating / updatedReviews.length).toFixed(1));
-        
-        return {
-          ...p,
-          reviews: updatedReviews,
-          reviews_count: updatedReviews.length,
-          rating: newRating
-        };
-      }
-      return p;
-    }));
   };
 
   const placeOrder = async (order: Order) => {
-      // 1. Read directly from Storage to get the absolute truth
-      const currentOrdersStr = localStorage.getItem('e2s_orders');
-      let currentOrders: Order[] = [];
-      try {
-          if (currentOrdersStr) {
-             currentOrders = JSON.parse(currentOrdersStr);
-          }
-      } catch(e) { console.error("Error reading orders", e); }
-      
-      // 2. Add new order to the top
-      const updatedOrders = [order, ...currentOrders];
-      
-      // 3. Save to Database (localStorage)
-      localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
-      
-      // 4. Update State to reflect changes in UI
-      setOrders(updatedOrders);
-      
-      return Promise.resolve();
+    // Remove ID so Firestore can generate a unique one, or keep custom ID logic if preferred
+    // Here we let Firestore generate the ID to avoid collisions
+    const { id, ...orderData } = order;
+    await addDoc(collection(db, "orders"), {
+      ...orderData,
+      createdAt: new Date().toISOString() // Helper for sorting
+    });
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-      // 1. Read DB
-      const currentOrdersStr = localStorage.getItem('e2s_orders');
-      let currentOrders: Order[] = [];
-      try {
-          if (currentOrdersStr) currentOrders = JSON.parse(currentOrdersStr);
-      } catch(e) { }
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    await updateDoc(doc(db, "orders", orderId), { status });
+  };
 
-      // 2. Update
-      const updatedOrders = currentOrders.map(o => o.id === orderId ? { ...o, status } : o);
-      
-      // 3. Save DB
-      localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
-      
-      // 4. Update State
-      setOrders(updatedOrders);
+  const refreshData = () => {
+    // No-op for Firestore real-time listeners
+    console.log("Data refreshed automatically via listeners");
   };
 
   return (
@@ -227,30 +186,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const mapUser = (fbUser: FirebaseUser): User => {
-    const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
-    const storedExtra = localStorage.getItem(`user_extra_${fbUser.uid}`);
-    const extra = storedExtra ? JSON.parse(storedExtra) : {};
-
-    return {
-      uid: fbUser.uid,
-      name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
-      email: fbUser.email || '',
-      role: role,
-      affiliate_id: fbUser.uid.substring(0, 8),
-      balance: 0,
-      points: extra.points || 0,
-      avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`,
-      joinedAt: fbUser.metadata.creationTime,
-      phone: extra.phone || '',
-      address: extra.address || ''
-    };
-  };
-
+  // Sync Firebase User with Firestore User Data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        setUser(mapUser(currentUser));
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          // Merge Auth data with Firestore data
+          const firestoreData = userSnap.data();
+          setUser({
+            uid: currentUser.uid,
+            email: currentUser.email || '',
+            name: currentUser.displayName || firestoreData.name || 'User',
+            avatar: currentUser.photoURL || firestoreData.avatar || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`,
+            role: firestoreData.role || (currentUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER),
+            affiliate_id: firestoreData.affiliate_id || currentUser.uid.substring(0, 8),
+            balance: firestoreData.balance || 0,
+            points: firestoreData.points || 0,
+            joinedAt: currentUser.metadata.creationTime,
+            phone: firestoreData.phone || '',
+            address: firestoreData.address || ''
+          });
+        } else {
+          // Create new user doc
+          const newUser: User = {
+            uid: currentUser.uid,
+            name: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+            email: currentUser.email || '',
+            role: currentUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER,
+            affiliate_id: currentUser.uid.substring(0, 8),
+            balance: 0,
+            points: 0,
+            avatar: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`,
+            joinedAt: currentUser.metadata.creationTime,
+            phone: '',
+            address: ''
+          };
+          await setDoc(userRef, newUser);
+          setUser(newUser);
+        }
       } else {
         setUser(null);
       }
@@ -283,7 +259,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: name });
-        setUser(mapUser({ ...auth.currentUser, displayName: name }));
+        // The onAuthStateChanged listener will handle creating the Firestore doc
       }
     } catch (error) {
       console.error("Registration failed", error);
@@ -292,32 +268,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateUserProfile = async (data: { name?: string; password?: string; phone?: string; address?: string }) => {
-    if (!auth.currentUser) throw new Error("No user logged in");
+    if (!auth.currentUser || !user) throw new Error("No user logged in");
     
     try {
+      const updates: any = {};
+      
       if (data.name) {
         await updateProfile(auth.currentUser, { displayName: data.name });
+        updates.name = data.name;
       }
       if (data.password) {
         await updatePassword(auth.currentUser, data.password);
       }
-      
-      const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
-      const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
-      
-      const newExtra = {
-          ...extraParsed,
-          ...(data.phone && { phone: data.phone }),
-          ...(data.address && { address: data.address })
-      };
-      localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
-      
-      setUser(prev => prev ? { 
-          ...prev, 
-          name: data.name || prev.name,
-          phone: data.phone || prev.phone,
-          address: data.address || prev.address
-      } : null);
+      if (data.phone) updates.phone = data.phone;
+      if (data.address) updates.address = data.address;
+
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(doc(db, "users", user.uid), updates);
+        setUser(prev => prev ? { ...prev, ...updates } : null);
+      }
     } catch (error) {
       console.error("Profile update failed", error);
       throw error;
@@ -328,19 +297,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!auth.currentUser || !user) return;
     
     try {
-        const currentExtra = localStorage.getItem(`user_extra_${auth.currentUser.uid}`);
-        const extraParsed = currentExtra ? JSON.parse(currentExtra) : {};
-        const currentPoints = (extraParsed.points || 0) + amount;
-
-        const newExtra = {
-            ...extraParsed,
-            points: currentPoints
-        };
-        localStorage.setItem(`user_extra_${auth.currentUser.uid}`, JSON.stringify(newExtra));
-
-        setUser(prev => prev ? { ...prev, points: currentPoints } : null);
+      const newPoints = (user.points || 0) + amount;
+      await updateDoc(doc(db, "users", user.uid), {
+        points: newPoints
+      });
+      setUser(prev => prev ? { ...prev, points: newPoints } : null);
     } catch (error) {
-        console.error("Failed to add points", error);
+      console.error("Failed to add points", error);
     }
   };
 
@@ -375,7 +338,7 @@ export const useAuth = () => {
   return context;
 };
 
-// --- Cart Context ---
+// --- Cart Context (Remains LocalStorage for now as it's temporary per session) ---
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;
