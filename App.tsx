@@ -13,6 +13,9 @@ import AffiliateDashboard from './pages/AffiliateDashboard';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Categories from './pages/Categories';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Offers from './pages/Offers';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -70,6 +73,9 @@ const App: React.FC = () => {
               <Route path="/affiliate" element={<Layout><AffiliateDashboard /></Layout>} />
               <Route path="/profile" element={<Layout><Profile /></Layout>} />
               <Route path="/categories" element={<Layout><Categories /></Layout>} />
+              <Route path="/about" element={<Layout><About /></Layout>} />
+              <Route path="/contact" element={<Layout><Contact /></Layout>} />
+              <Route path="/offers" element={<Layout><Offers /></Layout>} />
               
               {/* Placeholders */}
               <Route path="/search" element={<Layout><div className="min-h-[50vh] flex flex-col items-center justify-center p-10 text-center"><h2 className="text-2xl font-bold text-gray-900">Search</h2><p className="text-gray-500 mt-2">Coming Soon</p></div></Layout>} />
