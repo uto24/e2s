@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, Megaphone, Database, Check, UploadCloud } from 'lucide-react';
+import { Save, Sliders, Power, Megaphone, Database, Check, UploadCloud, Monitor, Image } from 'lucide-react';
 import { useShop } from '../services/store';
 import { DEFAULT_SETTINGS } from '../constants';
 
@@ -23,12 +23,25 @@ const AdminSettings: React.FC = () => {
     }));
   };
   
+  // Handle Nested Campaign Change
   const handleCampaignChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setLocalSettings(prev => ({
       ...prev,
       campaign: {
         ...prev.campaign,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      }
+    }));
+  };
+
+  // Handle Nested Popup Change
+  const handlePopupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setLocalSettings(prev => ({
+      ...prev,
+      popup: {
+        ...prev.popup,
         [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
       }
     }));
@@ -78,8 +91,18 @@ const AdminSettings: React.FC = () => {
     updateSettings(updated);
   };
 
+  const togglePopup = () => {
+    const newVal = !localSettings.popup.isActive;
+    const updated = {
+        ...localSettings,
+        popup: { ...localSettings.popup, isActive: newVal }
+    };
+    setLocalSettings(updated);
+    updateSettings(updated);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
         <button 
@@ -167,7 +190,7 @@ const AdminSettings: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
              <div className="flex items-center">
                 <Megaphone className="h-5 w-5 text-gray-400 mr-2" />
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Home Page Flash Campaign</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Flash Sale Campaign</h3>
              </div>
              <button 
                onClick={toggleCampaign}
@@ -215,6 +238,120 @@ const AdminSettings: React.FC = () => {
                           campaign: { ...prev.campaign, endTime: new Date(e.target.value).toISOString() }
                       }))}
                       className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+                    <p className="block text-sm font-medium text-gray-700 mb-2">Campaign Styling (Gradient)</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Start Color (Hex)</label>
+                            <div className="flex items-center">
+                                <input
+                                  type="color"
+                                  name="gradientFrom"
+                                  value={localSettings.campaign.gradientFrom || "#16a34a"}
+                                  onChange={handleCampaignChange}
+                                  className="h-9 w-9 border border-gray-300 rounded-md p-1 mr-2"
+                                />
+                                <input
+                                  type="text"
+                                  name="gradientFrom"
+                                  value={localSettings.campaign.gradientFrom || "#16a34a"}
+                                  onChange={handleCampaignChange}
+                                  className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">End Color (Hex)</label>
+                             <div className="flex items-center">
+                                <input
+                                  type="color"
+                                  name="gradientTo"
+                                  value={localSettings.campaign.gradientTo || "#059669"}
+                                  onChange={handleCampaignChange}
+                                  className="h-9 w-9 border border-gray-300 rounded-md p-1 mr-2"
+                                />
+                                <input
+                                  type="text"
+                                  name="gradientTo"
+                                  value={localSettings.campaign.gradientTo || "#059669"}
+                                  onChange={handleCampaignChange}
+                                  className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    {/* Preview */}
+                    <div className="mt-4 p-4 rounded-lg text-white text-center font-bold" style={{
+                        background: `linear-gradient(to right, ${localSettings.campaign.gradientFrom || '#16a34a'}, ${localSettings.campaign.gradientTo || '#059669'})`
+                    }}>
+                        Preview Campaign Background
+                    </div>
+                </div>
+              </div>
+          )}
+        </div>
+      </div>
+
+      {/* Promotional Popup Settings */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center">
+                <Monitor className="h-5 w-5 text-gray-400 mr-2" />
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Promotional Popup</h3>
+             </div>
+             <button 
+               onClick={togglePopup}
+               className={`${localSettings.popup.isActive ? 'bg-green-600' : 'bg-gray-200'} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none`}
+            >
+              <span className={`${localSettings.popup.isActive ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}></span>
+            </button>
+          </div>
+          
+          {localSettings.popup.isActive && (
+              <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 animate-fade-in">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Popup Title</label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      name="title"
+                      value={localSettings.popup.title}
+                      onChange={handlePopupChange}
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                  <div className="mt-1 flex items-center">
+                    <input
+                      type="text"
+                      name="image"
+                      value={localSettings.popup.image}
+                      onChange={handlePopupChange}
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      placeholder="https://..."
+                    />
+                    {localSettings.popup.image && (
+                        <img src={localSettings.popup.image} alt="Preview" className="h-10 w-10 ml-2 rounded object-cover border" />
+                    )}
+                  </div>
+                </div>
+                 <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Target Link (Where clicking leads to)</label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      name="link"
+                      value={localSettings.popup.link}
+                      onChange={handlePopupChange}
+                      className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      placeholder="/offers"
                     />
                   </div>
                 </div>

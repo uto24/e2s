@@ -15,7 +15,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
     isActive: true,
     title: "ফ্ল্যাশ সেল!",
     subtitle: "সীমিত সময়ের জন্য বিশেষ মূল্যছাড়",
-    endTime: tomorrow.toISOString()
+    endTime: tomorrow.toISOString(),
+    gradientFrom: "#16a34a", // green-600
+    gradientTo: "#059669"   // emerald-600
+  },
+  popup: {
+    isActive: false,
+    title: "বিশেষ অফার!",
+    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80",
+    link: "/offers"
   }
 };
 

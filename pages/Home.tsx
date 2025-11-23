@@ -135,33 +135,58 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Flash Sale Banner - Dynamic from Settings */}
+      {/* Flash Sale Banner - Updated Design */}
       {settings.campaign?.isActive && (
-          <section className="py-10 bg-green-600 my-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-white">
-              <div className="flex items-center mb-6 md:mb-0">
-                 <div className="bg-white/20 p-4 rounded-xl mr-6 backdrop-blur-sm animate-pulse">
-                   <Clock size={40} className="text-white" />
-                 </div>
-                 <div>
-                   <h2 className="text-3xl font-bold">{settings.campaign.title || "ফ্ল্যাশ সেল!"}</h2>
-                   <p className="text-green-100 text-lg">{settings.campaign.subtitle || "সীমিত সময়ের জন্য বিশেষ মূল্যছাড়"}</p>
-                 </div>
-              </div>
-              <div className="flex space-x-4 text-center">
-                {[timeLeft.hours, timeLeft.minutes, timeLeft.seconds].map((time, i) => (
-                  <div key={i} className="bg-white text-green-600 rounded-lg p-3 min-w-[70px]">
-                    <span className="text-3xl font-bold block">{String(time).padStart(2, '0')}</span>
-                    <span className="text-xs font-bold uppercase">{['ঘন্টা', 'মিনিট', 'সেকেন্ড'][i]}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 md:mt-0">
-                <Link to="/categories" className="bg-white text-green-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg">
-                  এখনই কিনুন
-                </Link>
-              </div>
-            </div>
+          <section className="py-12 my-8 mx-4 sm:mx-0">
+             <div 
+               className="max-w-7xl mx-auto rounded-3xl overflow-hidden shadow-2xl relative transition-all hover:shadow-green-900/20"
+               style={{ 
+                 background: `linear-gradient(120deg, ${settings.campaign.gradientFrom || '#0f172a'} 0%, ${settings.campaign.gradientTo || '#334155'} 100%)`
+               }}
+             >
+                {/* Modern Abstract Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                   <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+                   </svg>
+                </div>
+                
+                {/* Glowing Effect */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-[100px] pointer-events-none"></div>
+
+                <div className="relative z-10 px-6 py-16 md:p-20 flex flex-col md:flex-row items-center justify-between">
+                   <div className="text-center md:text-left text-white mb-10 md:mb-0 max-w-2xl">
+                      <div className="inline-flex items-center bg-red-500/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-bold mb-6 border border-red-500/30 text-red-200 animate-pulse">
+                         <Clock size={16} className="mr-2"/> সীমিত সময়ের জন্য
+                      </div>
+                      <h2 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight drop-shadow-sm">{settings.campaign.title}</h2>
+                      <p className="text-xl text-gray-200 opacity-90 leading-relaxed">{settings.campaign.subtitle}</p>
+                   </div>
+                   
+                   <div className="flex flex-col items-center bg-white/5 p-8 rounded-2xl backdrop-blur-sm border border-white/10 shadow-inner">
+                      <p className="text-sm uppercase tracking-widest text-gray-300 mb-4 font-semibold">অফার শেষ হবে</p>
+                      <div className="flex space-x-3 text-center mb-8">
+                        {[timeLeft.hours, timeLeft.minutes, timeLeft.seconds].map((time, i) => (
+                          <div key={i} className="bg-gray-900/60 backdrop-blur-md border border-gray-600 text-white rounded-xl p-4 w-20 shadow-lg flex flex-col items-center justify-center">
+                            <span className="text-3xl font-bold font-mono block leading-none mb-1">{String(time).padStart(2, '0')}</span>
+                            <span className="text-[10px] uppercase font-medium tracking-wider text-gray-400">{['ঘন্টা', 'মিনিট', 'সেকেন্ড'][i]}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <Link 
+                        to="/offers" 
+                        className="w-full bg-white text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-400 hover:text-green-950 transition-all transform hover:scale-105 shadow-xl flex items-center justify-center"
+                      >
+                         শপিং শুরু করুন <ArrowRight className="ml-2" />
+                      </Link>
+                   </div>
+                </div>
+             </div>
           </section>
       )}
 

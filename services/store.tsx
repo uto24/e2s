@@ -22,7 +22,9 @@ import {
   orderBy, 
   setDoc, 
   getDoc,
-  writeBatch
+  writeBatch,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from './firebase';
 
@@ -40,6 +42,10 @@ interface ShopContextType {
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   refreshData: () => void;
   seedDatabase: () => Promise<void>;
+  // Affiliate Logic
+  submitAffiliateApplication: (data: any) => Promise<void>;
+  getPendingAffiliates: () => Promise<User[]>;
+  reviewAffiliate: (userId: string, action: 'approve' | 'reject') => Promise<void>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -56,7 +62,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
       const productsData: Product[] = [];
       snapshot.forEach((doc) => {
-        // Ensure id comes from doc.id if not in data, or overwrite
         productsData.push({ ...doc.data(), id: doc.id } as Product);
       });
       setProducts(productsData);
@@ -65,8 +70,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     // Orders Listener
-    // Note: Removed orderBy("date", "desc") to prevent "index required" errors on new Firebase projects.
-    // We sort client-side instead.
     const qOrders = query(collection(db, "orders"));
     const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       const ordersData: Order[] = [];
@@ -74,7 +77,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ordersData.push({ ...doc.data(), id: doc.id } as Order); 
       });
       
-      // Client-side Sort: Newest first based on ISO date or 'createdAt'
       ordersData.sort((a, b) => {
         const dateA = new Date((a as any).createdAt || a.date).getTime();
         const dateB = new Date((b as any).createdAt || b.date).getTime();
@@ -91,7 +93,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (doc.exists()) {
         setSettings({ ...DEFAULT_SETTINGS, ...doc.data() as AppSettings });
       } else {
-        // Create default settings if not exists
         setDoc(doc.ref, DEFAULT_SETTINGS);
       }
     }, (error) => {
@@ -106,7 +107,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addProduct = async (product: Product) => {
-    // Remove ID if present so Firestore generates it, or use setDoc if we want to force ID
     const { id, ...rest } = product; 
     await addDoc(collection(db, "products"), rest);
   };
@@ -141,10 +141,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-    // We use setDoc with the order.id generated in Checkout to ensure consistency
     await setDoc(doc(db, "orders", order.id), {
       ...order,
-      createdAt: new Date().toISOString() // Helper for sorting
+      createdAt: new Date().toISOString() 
     });
   };
 
@@ -152,28 +151,42 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await updateDoc(doc(db, "orders", orderId), { status });
   };
 
+  // Affiliate Logic
+  const submitAffiliateApplication = async (data: any) => {
+    if (!auth.currentUser) throw new Error("User must be logged in");
+    await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        affiliateStatus: 'pending',
+        affiliateInfo: data
+    });
+  };
+
+  const getPendingAffiliates = async () => {
+      const q = query(collection(db, "users"), where("affiliateStatus", "==", "pending"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({...d.data(), uid: d.id} as User));
+  };
+
+  const reviewAffiliate = async (userId: string, action: 'approve' | 'reject') => {
+      await updateDoc(doc(db, "users", userId), {
+          affiliateStatus: action === 'approve' ? 'approved' : 'rejected',
+          role: action === 'approve' ? UserRole.AFFILIATE : UserRole.USER
+      });
+  };
+
   const refreshData = () => {
-    // With onSnapshot, data is always fresh. This is kept for interface compatibility.
     console.log("Data is synchronized with Firestore.");
   };
 
-  // Seed Function: Uploads default products to Firestore
   const seedDatabase = async () => {
     const batch = writeBatch(db);
-    
-    // 1. Seed Products
-    // We only add products if they don't look like they exist, but for batch we just add new ones
     console.log("Seeding products...");
     DEFAULT_PRODUCTS.forEach(p => {
-      const { id, ...data } = p; // Let Firestore generate IDs or use specific ones
-      const ref = doc(collection(db, "products")); // Auto ID
+      const { id, ...data } = p; 
+      const ref = doc(collection(db, "products")); 
       batch.set(ref, data);
     });
-    
-    // 2. Ensure Settings Exist
     const settingsRef = doc(db, "settings", "global");
     batch.set(settingsRef, DEFAULT_SETTINGS, { merge: true });
-
     await batch.commit();
     console.log("Database seeded successfully!");
   };
@@ -191,7 +204,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       placeOrder, 
       updateOrderStatus,
       refreshData,
-      seedDatabase
+      seedDatabase,
+      submitAffiliateApplication,
+      getPendingAffiliates,
+      reviewAffiliate
     }}>
       {children}
     </ShopContext.Provider>
@@ -225,7 +241,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sync Firebase User with Firestore User Data
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -233,7 +248,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userSnap = await getDoc(userRef);
         
         if (userSnap.exists()) {
-          // Merge Auth data with Firestore data
           const firestoreData = userSnap.data();
           setUser({
             uid: currentUser.uid,
@@ -246,10 +260,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             points: firestoreData.points || 0,
             joinedAt: firestoreData.joinedAt || currentUser.metadata.creationTime,
             phone: firestoreData.phone || '',
-            address: firestoreData.address || ''
+            address: firestoreData.address || '',
+            affiliateStatus: firestoreData.affiliateStatus || 'none',
+            affiliateInfo: firestoreData.affiliateInfo || null
           });
         } else {
-          // Create new user doc
           const newUser: User = {
             uid: currentUser.uid,
             name: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
@@ -261,7 +276,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             avatar: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`,
             joinedAt: currentUser.metadata.creationTime,
             phone: '',
-            address: ''
+            address: '',
+            affiliateStatus: 'none'
           };
           await setDoc(userRef, newUser);
           setUser(newUser);
@@ -298,7 +314,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await createUserWithEmailAndPassword(auth, email, pass);
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: name });
-        // The onAuthStateChanged listener will handle creating the Firestore doc
       }
     } catch (error) {
       console.error("Registration failed", error);
@@ -377,7 +392,7 @@ export const useAuth = () => {
   return context;
 };
 
-// --- Cart Context (Remains LocalStorage for now as it's temporary per session) ---
+// --- Cart Context ---
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;

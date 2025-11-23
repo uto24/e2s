@@ -1,10 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { Menu, ShoppingBag, Home, Search, User, X, LogOut, LayoutDashboard, BarChart2, Tag, Info, Phone } from 'lucide-react';
-import { useCart, useAuth } from '../services/store';
+import { useCart, useAuth, useShop } from '../services/store';
 import { APP_NAME } from '../constants';
 import { UserRole } from '../types';
 import { FloatingChatWidget } from './Widgets';
+
+const PromotionalPopup: React.FC = () => {
+    const { settings } = useShop();
+    const [isVisible, setIsVisible] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Show popup after 2 seconds if active and settings loaded
+        if (settings.popup?.isActive) {
+            const timer = setTimeout(() => {
+                // Optional: Check localStorage to show only once per session
+                // const hasSeen = sessionStorage.getItem('hasSeenPopup');
+                // if (!hasSeen) {
+                    setIsVisible(true);
+                    // sessionStorage.setItem('hasSeenPopup', 'true');
+                // }
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [settings.popup]);
+
+    if (!isVisible || !settings.popup?.isActive) return null;
+
+    const handleClose = () => setIsVisible(false);
+    const handleAction = () => {
+        setIsVisible(false);
+        navigate(settings.popup.link || '/offers');
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={handleClose}></div>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full relative z-10 overflow-hidden animate-slide-up">
+                <button 
+                    onClick={handleClose} 
+                    className="absolute top-2 right-2 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors z-20"
+                >
+                    <X size={20} />
+                </button>
+                <div 
+                    className="h-48 bg-gray-200 bg-cover bg-center relative" 
+                    style={{ backgroundImage: `url(${settings.popup.image})` }}
+                >
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                </div>
+                <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{settings.popup.title}</h3>
+                    <p className="text-gray-500 text-sm mb-6">আমাদের নতুন কালেকশন এবং ধামাকা অফার মিস করবেন না!</p>
+                    <button 
+                        onClick={handleAction}
+                        className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
+                    >
+                        বিস্তারিত দেখুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const Navbar: React.FC = () => {
   const { itemCount } = useCart();
@@ -168,6 +227,7 @@ const MobileNav: React.FC = () => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
+      <PromotionalPopup />
       <Navbar />
       <main className="flex-grow pb-24 md:pb-0">
         {children}

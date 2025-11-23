@@ -32,6 +32,15 @@ export interface User {
   avatar?: string;
   joinedAt?: string;
   status?: 'active' | 'banned';
+  
+  // Affiliate Application Data
+  affiliateStatus?: 'none' | 'pending' | 'approved' | 'rejected';
+  affiliateInfo?: {
+    paymentMethod: string;
+    accountNumber: string;
+    promotionMethod: string;
+    socialLink?: string;
+  };
 }
 
 export interface Product {
@@ -121,5 +130,13 @@ export interface AppSettings {
     title: string;
     subtitle: string;
     endTime: string; // ISO string
+    gradientFrom: string; // Hex code for gradient start
+    gradientTo: string; // Hex code for gradient end
+  };
+  popup: {
+    isActive: boolean;
+    image: string;
+    title: string;
+    link: string;
   };
 }
