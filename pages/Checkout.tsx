@@ -107,7 +107,7 @@ const Checkout: React.FC = () => {
       setOrderSuccess(true);
     } catch (error) {
       console.error("Order failed", error);
-      alert("অর্ডার প্লেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      alert("অর্ডার প্লেস করতে সমস্যা হয়েছে। দয়া করে ইন্টারনেট কানেকশন চেক করুন।");
     } finally {
       setIsSubmitting(false);
     }
@@ -129,7 +129,7 @@ const Checkout: React.FC = () => {
             <CheckCircle size={40} className="text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">অর্ডার কনফার্মড!</h2>
-          <p className="text-gray-500 mb-6">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
+          <p className="text-gray-500 mb-6">ধন্যবাদ, আপনার অর্ডারটি সফলভাবে ডাটাবেসে সেভ হয়েছে। শীঘ্রই আমরা যোগাযোগ করবো।</p>
           
           {earnedPoints > 0 && (
              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl mb-8 border border-yellow-100">

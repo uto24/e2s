@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, Megaphone } from 'lucide-react';
+import { Save, Sliders, Power, Megaphone, Database, Check } from 'lucide-react';
 import { useShop } from '../services/store';
 import { DEFAULT_SETTINGS } from '../constants';
 
 const AdminSettings: React.FC = () => {
-  const { settings, updateSettings } = useShop();
+  const { settings, updateSettings, seedDatabase, products } = useShop();
   const [localSettings, setLocalSettings] = useState(settings);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSeeded, setIsSeeded] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     // Ensure deep merge if fields are missing
@@ -42,6 +44,20 @@ const AdminSettings: React.FC = () => {
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
+  
+  const handleSeed = async () => {
+      setSeeding(true);
+      try {
+          await seedDatabase();
+          setIsSeeded(true);
+          setTimeout(() => setIsSeeded(false), 3000);
+      } catch (error) {
+          console.error(error);
+          alert("Failed to seed database. Check console.");
+      } finally {
+          setSeeding(false);
+      }
+  };
 
   const toggleMaintenance = () => {
     const newVal = !localSettings.maintenanceMode;
@@ -61,7 +77,7 @@ const AdminSettings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
         <button 
@@ -71,6 +87,36 @@ const AdminSettings: React.FC = () => {
           <Save size={18} className="mr-2" />
           {isSaved ? 'Saved!' : 'Save Changes'}
         </button>
+      </div>
+
+      {/* Database Actions */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+                <Database className="h-5 w-5 text-gray-400 mr-2" />
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Database Tools</h3>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">Initialize your shop with sample data if the product list is empty.</p>
+          
+          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+             <div className="text-sm">
+                 <span className="font-medium text-gray-700">Products in DB:</span> {products.length}
+             </div>
+             <button 
+               onClick={handleSeed}
+               disabled={seeding || products.length > 0}
+               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                   products.length > 0 
+                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                   : 'bg-blue-600 text-white hover:bg-blue-700'
+               }`}
+             >
+                 {seeding ? 'Processing...' : isSeeded ? <><Check size={16} className="mr-1"/> Done</> : 'Seed Products'}
+             </button>
+          </div>
+        </div>
       </div>
 
       {/* General Config */}

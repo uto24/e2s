@@ -21,7 +21,8 @@ import {
   query, 
   orderBy, 
   setDoc, 
-  getDoc 
+  getDoc,
+  writeBatch
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from './firebase';
 
@@ -38,6 +39,7 @@ interface ShopContextType {
   placeOrder: (order: Order) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   refreshData: () => void;
+  seedDatabase: () => Promise<void>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -57,16 +59,30 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         productsData.push({ ...doc.data(), id: doc.id } as Product);
       });
       setProducts(productsData);
+    }, (error) => {
+      console.error("Error fetching products from DB:", error);
     });
 
     // Orders
-    const qOrders = query(collection(db, "orders"), orderBy("date", "desc"));
+    // Removed orderBy("date", "desc") from query to prevent "Missing Index" errors in Firestore
+    // which causes data to disappear. We sort client-side instead.
+    const qOrders = query(collection(db, "orders"));
     const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       const ordersData: Order[] = [];
       snapshot.forEach((doc) => {
-        ordersData.push({ ...doc.data(), id: doc.id } as Order); // Ensure ID maps to Firestore ID
+        ordersData.push({ ...doc.data(), id: doc.id } as Order); 
       });
+      
+      // Client-side Sort: Newest first
+      ordersData.sort((a, b) => {
+        const dateA = new Date((a as any).createdAt || a.date).getTime();
+        const dateB = new Date((b as any).createdAt || b.date).getTime();
+        return dateB - dateA;
+      });
+      
       setOrders(ordersData);
+    }, (error) => {
+      console.error("Error fetching orders from DB:", error);
     });
 
     // Settings
@@ -77,6 +93,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Create default settings if not exists
         setDoc(doc.ref, DEFAULT_SETTINGS);
       }
+    }, (error) => {
+      console.error("Error fetching settings:", error);
     });
 
     return () => {
@@ -87,7 +105,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addProduct = async (product: Product) => {
-    // Remove ID so Firestore generates it, or use setDoc if ID is pre-generated
     const { id, ...rest } = product; 
     await addDoc(collection(db, "products"), rest);
   };
@@ -122,12 +139,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-    // Remove ID so Firestore can generate a unique one, or keep custom ID logic if preferred
-    // Here we let Firestore generate the ID to avoid collisions
     const { id, ...orderData } = order;
     await addDoc(collection(db, "orders"), {
       ...orderData,
-      createdAt: new Date().toISOString() // Helper for sorting
+      createdAt: new Date().toISOString() // Helper for efficient sorting
     });
   };
 
@@ -136,8 +151,25 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const refreshData = () => {
-    // No-op for Firestore real-time listeners
-    console.log("Data refreshed automatically via listeners");
+    console.log("Real-time connection active: Data stays fresh automatically.");
+  };
+
+  // Function to seed database with mock data if needed
+  const seedDatabase = async () => {
+    const batch = writeBatch(db);
+    
+    // Seed Products if empty
+    if (products.length === 0) {
+      console.log("Seeding products...");
+      DEFAULT_PRODUCTS.forEach(p => {
+        const { id, ...data } = p;
+        const ref = doc(collection(db, "products"));
+        batch.set(ref, data);
+      });
+    }
+    
+    await batch.commit();
+    console.log("Database seeded!");
   };
 
   return (
@@ -152,7 +184,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addReview, 
       placeOrder, 
       updateOrderStatus,
-      refreshData 
+      refreshData,
+      seedDatabase
     }}>
       {children}
     </ShopContext.Provider>
