@@ -25,6 +25,7 @@ interface ShopContextType {
   addReview: (productId: string, review: Review) => void;
   placeOrder: (order: Order) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  refreshData: () => void; // New function to force reload from "DB"
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -35,8 +36,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load data from localStorage on Mount
-  useEffect(() => {
+  // Helper to load all data from storage
+  const loadFromStorage = () => {
     const savedProducts = localStorage.getItem('e2s_products');
     const savedSettings = localStorage.getItem('e2s_settings');
     const savedOrders = localStorage.getItem('e2s_orders');
@@ -45,14 +46,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (savedProducts) {
       try {
         const parsed = JSON.parse(savedProducts);
-        // If array is empty or invalid, load defaults so shop isn't empty
         if (Array.isArray(parsed) && parsed.length > 0) {
             setProducts(parsed);
         } else {
             setProducts(DEFAULT_PRODUCTS);
         }
       } catch (e) { 
-          console.error("Failed to parse products", e); 
           setProducts(DEFAULT_PRODUCTS);
       }
     } else {
@@ -62,8 +61,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Load Settings
     if (savedSettings) {
       try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
       } catch (e) { console.error("Failed to parse settings", e); }
     }
 
@@ -77,15 +75,23 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setOrders([]);
         }
       } catch (e) { 
-        console.error("Failed to parse orders", e); 
         setOrders([]);
       }
     } else {
       setOrders([]);
     }
+  };
 
-    setIsLoaded(true); // Mark as loaded
+  // Initial Load
+  useEffect(() => {
+    loadFromStorage();
+    setIsLoaded(true);
   }, []);
+
+  // Exposed refresh function
+  const refreshData = () => {
+    loadFromStorage();
+  };
 
   // Auto-save Products
   useEffect(() => {
@@ -100,9 +106,6 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('e2s_settings', JSON.stringify(settings));
     }
   }, [settings, isLoaded]);
-
-  // IMPORTANT: We REMOVED the auto-save useEffect for ORDERS.
-  // Saving is now handled explicitly in placeOrder and updateOrderStatus to prevent overwrites.
 
   const addProduct = (product: Product) => {
     setProducts(prev => [product, ...prev]);
@@ -139,42 +142,59 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const placeOrder = async (order: Order) => {
-      // 1. Read current state directly from Storage to ensure we have the latest data
+      // 1. Read directly from Storage to get the absolute truth
       const currentOrdersStr = localStorage.getItem('e2s_orders');
       let currentOrders: Order[] = [];
       try {
           if (currentOrdersStr) {
              currentOrders = JSON.parse(currentOrdersStr);
           }
-      } catch(e) { console.error("Error reading orders for placement", e); }
+      } catch(e) { console.error("Error reading orders", e); }
       
-      // 2. Append new order
+      // 2. Add new order to the top
       const updatedOrders = [order, ...currentOrders];
       
-      // 3. Write back to Storage immediately
+      // 3. Save to Database (localStorage)
       localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
       
-      // 4. Update React State
+      // 4. Update State to reflect changes in UI
       setOrders(updatedOrders);
       
       return Promise.resolve();
   };
 
   const updateOrderStatus = (orderId: string, status: Order['status']) => {
+      // 1. Read DB
       const currentOrdersStr = localStorage.getItem('e2s_orders');
       let currentOrders: Order[] = [];
       try {
           if (currentOrdersStr) currentOrders = JSON.parse(currentOrdersStr);
       } catch(e) { }
 
+      // 2. Update
       const updatedOrders = currentOrders.map(o => o.id === orderId ? { ...o, status } : o);
       
+      // 3. Save DB
       localStorage.setItem('e2s_orders', JSON.stringify(updatedOrders));
+      
+      // 4. Update State
       setOrders(updatedOrders);
   };
 
   return (
-    <ShopContext.Provider value={{ products, orders, settings, addProduct, updateProduct, deleteProduct, updateSettings, addReview, placeOrder, updateOrderStatus }}>
+    <ShopContext.Provider value={{ 
+      products, 
+      orders, 
+      settings, 
+      addProduct, 
+      updateProduct, 
+      deleteProduct, 
+      updateSettings, 
+      addReview, 
+      placeOrder, 
+      updateOrderStatus,
+      refreshData 
+    }}>
       {children}
     </ShopContext.Provider>
   );
@@ -209,7 +229,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const mapUser = (fbUser: FirebaseUser): User => {
     const role = fbUser.email === ADMIN_EMAIL ? UserRole.ADMIN : UserRole.USER;
-    // Load extra data (phone, address, points) from localStorage since we don't have a backend DB
     const storedExtra = localStorage.getItem(`user_extra_${fbUser.uid}`);
     const extra = storedExtra ? JSON.parse(storedExtra) : {};
 
@@ -220,7 +239,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role: role,
       affiliate_id: fbUser.uid.substring(0, 8),
       balance: 0,
-      points: extra.points || 0, // Load points
+      points: extra.points || 0,
       avatar: fbUser.photoURL || `https://ui-avatars.com/api/?name=${fbUser.displayName || 'User'}`,
       joinedAt: fbUser.metadata.creationTime,
       phone: extra.phone || '',

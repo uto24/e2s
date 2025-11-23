@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, useShop } from '../services/store';
-import { User, Mail, Edit2, Save, Package, CreditCard, LogOut, Camera, Phone, MapPin, Calendar, CheckCircle, Gift, Award, TrendingUp, Clock, Truck, XCircle } from 'lucide-react';
+import { User, Mail, Edit2, Save, Package, CreditCard, LogOut, Camera, Phone, MapPin, Calendar, CheckCircle, Gift, Award, TrendingUp, Clock, Truck, XCircle, RefreshCw } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { Navigate } from 'react-router-dom';
 import { Order, OrderStatus } from '../types';
 
 const Profile: React.FC = () => {
   const { user, logout, updateUserProfile, loading } = useAuth();
-  const { orders } = useShop(); 
+  const { orders, refreshData } = useShop(); 
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'settings'>('overview');
   const [formData, setFormData] = useState({
@@ -18,8 +18,13 @@ const Profile: React.FC = () => {
   });
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
+  // Load latest data on mount
+  useEffect(() => {
+    refreshData();
+  }, []);
+
   // Initialize form data when user loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || '',
@@ -40,7 +45,7 @@ const Profile: React.FC = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const userOrders = orders.filter(o => o.email === user.email);
+  const userOrders = orders.filter(o => o.email?.toLowerCase() === user.email?.toLowerCase());
   const totalSpent = userOrders.reduce((acc, order) => acc + order.total, 0);
 
   const handleSave = async () => {
@@ -195,7 +200,12 @@ const Profile: React.FC = () => {
                       {/* Recent Order Preview */}
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                              <h3 className="font-bold text-gray-900">সর্বশেষ অর্ডার</h3>
+                              <div className="flex items-center space-x-2">
+                                <h3 className="font-bold text-gray-900">সর্বশেষ অর্ডার</h3>
+                                <button onClick={refreshData} className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600" title="Refresh">
+                                    <RefreshCw size={14} />
+                                </button>
+                              </div>
                               <button onClick={() => setActiveTab('orders')} className="text-sm text-green-600 hover:underline">সব দেখুন</button>
                           </div>
                           {userOrders.length > 0 ? (
@@ -221,7 +231,10 @@ const Profile: React.FC = () => {
                                   ))}
                               </div>
                           ) : (
-                              <div className="p-8 text-center text-gray-500">কোনো অর্ডার পাওয়া যায়নি।</div>
+                              <div className="p-8 text-center text-gray-500">
+                                  <Package size={32} className="mx-auto text-gray-300 mb-2" />
+                                  <p>কোনো অর্ডার পাওয়া যায়নি।</p>
+                              </div>
                           )}
                       </div>
                   </div>
@@ -229,8 +242,11 @@ const Profile: React.FC = () => {
 
                {activeTab === 'orders' && (
                   <div className="animate-fade-in bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                      <div className="px-6 py-4 border-b border-gray-100">
+                      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                           <h3 className="font-bold text-gray-900">অর্ডার ইতিহাস</h3>
+                          <button onClick={refreshData} className="flex items-center text-xs text-gray-500 hover:text-green-600">
+                             <RefreshCw size={14} className="mr-1" /> রিফ্রেশ
+                          </button>
                       </div>
                       <div className="divide-y divide-gray-100">
                           {userOrders.length > 0 ? (

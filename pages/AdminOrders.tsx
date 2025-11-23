@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, Download, CheckCircle, Clock, Truck, XCircle, AlertTriangle, Inbox, RefreshCw } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { OrderStatus } from '../types';
 import { useShop } from '../services/store';
 
 const AdminOrders: React.FC = () => {
-  const { orders } = useShop(); // Fetch real orders from context
+  const { orders, refreshData } = useShop(); 
   const [activeFilter, setActiveFilter] = useState<OrderStatus | 'all'>('all');
+
+  // Load fresh data on mount
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   const filteredOrders = activeFilter === 'all' 
     ? orders 
@@ -34,7 +39,7 @@ const AdminOrders: React.FC = () => {
         <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Total: {orders.length}</span>
             <button 
-                onClick={() => window.location.reload()} 
+                onClick={() => refreshData()} 
                 className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
                 title="Refresh Data"
             >

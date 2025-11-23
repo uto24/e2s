@@ -24,6 +24,18 @@ const Checkout: React.FC = () => {
     note: ''
   });
 
+  // Sync user data if user loads late
+  useEffect(() => {
+    if (user) {
+        setFormData(prev => ({
+            ...prev,
+            name: user.name || prev.name,
+            phone: user.phone || prev.phone,
+            address: user.address || prev.address
+        }));
+    }
+  }, [user]);
+
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [transactionId, setTransactionId] = useState('');
   const [senderNumber, setSenderNumber] = useState('');
@@ -71,7 +83,9 @@ const Checkout: React.FC = () => {
       const newOrder = {
         id: Math.random().toString(36).substr(2, 9).toUpperCase(),
         customer: formData.name,
-        email: user?.email || 'guest@example.com',
+        // Crucial: Use logged-in email, or fallback to a generated one if needed. 
+        // If guest checkout was allowed, we'd need an email field. Assuming logged in or OK with guest.
+        email: user?.email || 'guest@example.com', 
         total: grandTotal,
         status: 'pending' as const,
         date: new Date().toLocaleDateString(),
