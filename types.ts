@@ -1,4 +1,5 @@
 
+
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
@@ -49,7 +50,7 @@ export interface Product {
   title: string;
   slug: string;
   description: string;
-  price: number; // Selling Price
+  price: number; // Selling Price (Retail)
   wholesalePrice: number; // Base price for affiliates/resellers
   sale_price?: number;
   category: string;
@@ -75,6 +76,9 @@ export interface CartItem extends Product {
   selectedSize?: string;
   selectedColor?: string;
   cartItemId: string;
+  // Reseller Logic
+  sourceAffiliateId?: string;
+  resellerProfit?: number; // Calculated at time of adding to cart (Selling - Wholesale)
 }
 
 export interface AffiliateStat {
@@ -106,6 +110,10 @@ export interface Order {
   shippingAddress?: ShippingAddress;
   transactionId?: string;
   senderNumber?: string;
+  
+  // Reseller / Affiliate Info
+  affiliateId?: string;
+  totalResellerProfit?: number; // Total profit for the reseller from this order
 }
 
 export type WithdrawStatus = 'pending' | 'approved' | 'rejected' | 'paid';

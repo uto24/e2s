@@ -153,10 +153,41 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ...order,
       createdAt: new Date().toISOString() 
     });
+    
+    // If order has reseller info, update reseller balance (Simplified)
+    // In production, this should happen after order is "Delivered" via Cloud Functions
+    if (order.affiliateId && order.totalResellerProfit && order.totalResellerProfit > 0) {
+        // We are NOT updating balance here to avoid client-side manipulation risks.
+        // This is where you would normally trigger a backend process.
+        console.log(`Order ${order.id} includes reseller commission: ${order.totalResellerProfit} for ${order.affiliateId}`);
+    }
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     await updateDoc(doc(db, "orders", orderId), { status });
+    
+    // Check if status is 'delivered' and apply commission
+    if (status === 'delivered') {
+        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        if (orderSnap.exists()) {
+            const orderData = orderSnap.data() as Order;
+            if (orderData.affiliateId && orderData.totalResellerProfit && orderData.totalResellerProfit > 0) {
+                 const qUser = query(collection(db, "users"), where("affiliate_id", "==", orderData.affiliateId));
+                 const userSnaps = await getDocs(qUser);
+                 if (!userSnaps.empty) {
+                     const userDoc = userSnaps.docs[0];
+                     const userData = userDoc.data() as User;
+                     // Update balance
+                     await updateDoc(userDoc.ref, {
+                         balance: (userData.balance || 0) + orderData.totalResellerProfit
+                     });
+                     
+                     // Add to stats (simplified)
+                     // In real app, add a transaction record to a 'transactions' collection
+                 }
+            }
+        }
+    }
   };
 
   // Affiliate Logic
@@ -403,7 +434,7 @@ export const useAuth = () => {
 // --- Cart Context ---
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;
+  addToCart: (product: Product, quantity?: number, size?: string, color?: string, affiliateInfo?: { aid: string; customPrice: number }) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -431,12 +462,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('e2s_cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, quantity = 1, size?: string, color?: string) => {
+  const addToCart = (product: Product, quantity = 1, size?: string, color?: string, affiliateInfo?: { aid: string; customPrice: number }) => {
     setItems(prev => {
+      // Check if item exists with same ID, size, color AND same price/affiliate
+      // If a reseller link is used, it should probably start a new cart line item if price differs
       const existingIndex = prev.findIndex(item => 
         item.id === product.id && 
         item.selectedSize === size && 
-        item.selectedColor === color
+        item.selectedColor === color &&
+        item.sourceAffiliateId === affiliateInfo?.aid &&
+        (affiliateInfo?.customPrice ? (item.sale_price === affiliateInfo.customPrice || item.price === affiliateInfo.customPrice) : true)
       );
 
       if (existingIndex > -1) {
@@ -445,13 +480,28 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return newItems;
       }
       
+      // Calculate profit if this is a reseller sale
+      let resellerProfit = 0;
+      let finalProduct = { ...product };
+
+      if (affiliateInfo) {
+          finalProduct.sale_price = affiliateInfo.customPrice; // Override sale price with reseller price
+          const wholesale = product.wholesalePrice || product.price; // Fallback
+          resellerProfit = Math.max(0, affiliateInfo.customPrice - wholesale);
+      }
+
       const newItem: CartItem = {
-        ...product,
+        ...finalProduct,
         quantity,
         selectedSize: size,
         selectedColor: color,
-        cartItemId: `${product.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+        cartItemId: `${product.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        sourceAffiliateId: affiliateInfo?.aid,
+        resellerProfit: resellerProfit * quantity // Initial total profit for this line item
       };
+      
+      // Note: We'll calculate total reseller profit dynamically based on quantity updates
+      
       return [...prev, newItem];
     });
   };
@@ -465,14 +515,24 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       removeFromCart(cartItemId);
       return;
     }
-    setItems(prev => prev.map(item => 
-      item.cartItemId === cartItemId ? { ...item, quantity } : item
-    ));
+    setItems(prev => prev.map(item => {
+      if (item.cartItemId === cartItemId) {
+          // Recalculate profit if quantity changes
+          const unitProfit = (item.resellerProfit || 0) / item.quantity;
+          return { 
+              ...item, 
+              quantity, 
+              resellerProfit: unitProfit * quantity 
+          };
+      }
+      return item;
+    }));
   };
 
   const clearCart = () => setItems([]);
 
   const total = items.reduce((sum, item) => {
+    // If sale_price exists (which might be reseller price), use it.
     const price = item.sale_price || item.price;
     return sum + price * item.quantity;
   }, 0);
