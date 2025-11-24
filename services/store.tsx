@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
 import { DEFAULT_SETTINGS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
@@ -153,37 +154,44 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ...order,
       createdAt: new Date().toISOString() 
     });
-    
-    // If order has reseller info, update reseller balance (Simplified)
-    // In production, this should happen after order is "Delivered" via Cloud Functions
-    if (order.affiliateId && order.totalResellerProfit && order.totalResellerProfit > 0) {
-        // We are NOT updating balance here to avoid client-side manipulation risks.
-        // This is where you would normally trigger a backend process.
-        console.log(`Order ${order.id} includes reseller commission: ${order.totalResellerProfit} for ${order.affiliateId}`);
-    }
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     await updateDoc(doc(db, "orders", orderId), { status });
     
     // Check if status is 'delivered' and apply commission
+    // CRITICAL: Check commissionPaid flag to prevent double payment
     if (status === 'delivered') {
-        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        const orderRef = doc(db, "orders", orderId);
+        const orderSnap = await getDoc(orderRef);
+        
         if (orderSnap.exists()) {
             const orderData = orderSnap.data() as Order;
-            if (orderData.affiliateId && orderData.totalResellerProfit && orderData.totalResellerProfit > 0) {
+            
+            // If reseller profit exists AND it hasn't been paid yet
+            if (orderData.affiliateId && 
+                orderData.totalResellerProfit && 
+                orderData.totalResellerProfit > 0 && 
+                !orderData.commissionPaid
+            ) {
                  const qUser = query(collection(db, "users"), where("affiliate_id", "==", orderData.affiliateId));
                  const userSnaps = await getDocs(qUser);
+                 
                  if (!userSnaps.empty) {
                      const userDoc = userSnaps.docs[0];
                      const userData = userDoc.data() as User;
-                     // Update balance
+                     
+                     // 1. Update Affiliate Balance
                      await updateDoc(userDoc.ref, {
                          balance: (userData.balance || 0) + orderData.totalResellerProfit
                      });
                      
-                     // Add to stats (simplified)
-                     // In real app, add a transaction record to a 'transactions' collection
+                     // 2. Mark order as commission paid so we don't pay again
+                     await updateDoc(orderRef, {
+                         commissionPaid: true
+                     });
+
+                     console.log(`Commission of ${orderData.totalResellerProfit} paid to affiliate ${orderData.affiliateId}`);
                  }
             }
         }
@@ -477,6 +485,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (existingIndex > -1) {
         const newItems = [...prev];
         newItems[existingIndex].quantity += quantity;
+        
+        // Recalculate profit if quantity changes
+        if(newItems[existingIndex].sourceAffiliateId && newItems[existingIndex].sale_price) {
+           const unitProfit = (newItems[existingIndex].sale_price! - (product.wholesalePrice || product.price));
+           newItems[existingIndex].resellerProfit = unitProfit * newItems[existingIndex].quantity;
+        }
+
         return newItems;
       }
       
@@ -500,8 +515,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         resellerProfit: resellerProfit * quantity // Initial total profit for this line item
       };
       
-      // Note: We'll calculate total reseller profit dynamically based on quantity updates
-      
       return [...prev, newItem];
     });
   };
@@ -518,7 +531,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setItems(prev => prev.map(item => {
       if (item.cartItemId === cartItemId) {
           // Recalculate profit if quantity changes
-          const unitProfit = (item.resellerProfit || 0) / item.quantity;
+          let unitProfit = 0;
+          if(item.resellerProfit) {
+               unitProfit = item.resellerProfit / item.quantity;
+          }
+          
           return { 
               ...item, 
               quantity, 

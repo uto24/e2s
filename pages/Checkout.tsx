@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart, useAuth, useShop } from '../services/store';
@@ -80,6 +82,15 @@ const Checkout: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Calculate Reseller Commission
+      // We sum up the total reseller profit from all items in cart
+      const totalResellerProfit = items.reduce((sum, item) => sum + (item.resellerProfit || 0), 0);
+      
+      // Find the affiliate ID. Assuming one order can only have one affiliate source for simplicity in attribution.
+      // If multiple items have different sourceAffiliateId, we might pick the first one or need a more complex structure.
+      // For this implementation, we check if ANY item has a sourceAffiliateId.
+      const affiliateId = items.find(i => i.sourceAffiliateId)?.sourceAffiliateId;
+
       const orderId = Math.random().toString(36).substr(2, 9).toUpperCase();
       const newOrder = {
         id: orderId,
@@ -93,7 +104,12 @@ const Checkout: React.FC = () => {
         paymentMethod,
         shippingAddress: formData,
         transactionId: paymentMethod !== 'cod' ? transactionId : undefined,
-        senderNumber: paymentMethod !== 'cod' ? senderNumber : undefined
+        senderNumber: paymentMethod !== 'cod' ? senderNumber : undefined,
+        
+        // Add Reseller Data
+        affiliateId: affiliateId,
+        totalResellerProfit: totalResellerProfit,
+        commissionPaid: false // Default to false
       };
 
       // Ensure this is properly awaited to save to Firebase

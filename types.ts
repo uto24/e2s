@@ -114,6 +114,7 @@ export interface Order {
   // Reseller / Affiliate Info
   affiliateId?: string;
   totalResellerProfit?: number; // Total profit for the reseller from this order
+  commissionPaid?: boolean; // To ensure we only add balance once
 }
 
 export type WithdrawStatus = 'pending' | 'approved' | 'rejected' | 'paid';

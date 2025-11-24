@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle } from 'lucide-react';
@@ -57,10 +58,12 @@ const ProductDetail: React.FC = () => {
         
         window.scrollTo(0, 0);
       } else {
-        navigate('/');
+        // If product not found in current list, wait or redirect
+        // For now, redirect if context is loaded but product is missing
+        // navigate('/'); 
       }
     }
-  }, [id, navigate, products, searchParams]);
+  }, [id, products, searchParams]);
 
   if (!product) return <div className="flex justify-center items-center h-screen bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div></div>;
 
@@ -98,9 +101,9 @@ const ProductDetail: React.FC = () => {
     }, 2000);
   };
 
-  const galleryImages = product.images && product.images.length > 0 
-    ? product.images 
-    : [product.image];
+  // Combine main image and gallery images for the thumbnail strip
+  // Use Set to avoid duplicates if main image is also in gallery
+  const allImages = Array.from(new Set([product.image, ...(product.images || [])]));
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,17 +201,18 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
             
-            {galleryImages.length > 1 && (
+            {/* Gallery Images (The "4 pic" request) */}
+            {allImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {galleryImages.map((img, i) => (
+                {allImages.map((img, i) => (
                     <button 
                     key={i} 
                     onClick={() => setMainImage(img)}
                     className={`relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl border-2 overflow-hidden transition-all ${
-                        mainImage === img ? 'border-green-600 ring-2 ring-green-100' : 'border-gray-100 hover:border-green-300'
+                        mainImage === img ? 'border-green-600 ring-2 ring-green-100 opacity-100' : 'border-gray-100 hover:border-green-300 opacity-80 hover:opacity-100'
                     }`}
                     >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={img} alt={`Product ${i}`} className="w-full h-full object-cover" />
                     </button>
                 ))}
                 </div>
@@ -216,7 +220,7 @@ const ProductDetail: React.FC = () => {
             
              {/* Desktop Tabs Positioned Here for Layout Balance */}
              <div className="hidden lg:block mt-8 animate-slide-up" style={{animationDelay: '0.1s'}}>
-                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
                     <div className="flex border-b border-gray-100">
                         <button 
                             onClick={() => setActiveTab('desc')}
@@ -239,22 +243,29 @@ const ProductDetail: React.FC = () => {
                     </div>
                     
                     <div className="p-8">
+                        {/* Description & Specifications */}
                         {activeTab === 'desc' && (
                             <div className="prose prose-green max-w-none animate-fade-in">
-                                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</p>
-                                {product.specifications && (
-                                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {Object.entries(product.specifications).map(([key, value]) => (
-                                            <div key={key} className="flex justify-between border-b border-gray-100 py-2">
-                                                <span className="font-medium text-gray-900">{key}</span>
-                                                <span className="text-gray-600">{value}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">বিবরণ</h3>
+                                <p className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">{product.description}</p>
+                                
+                                {product.specifications && Object.keys(product.specifications).length > 0 && (
+                                    <>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                            {Object.entries(product.specifications).map(([key, value]) => (
+                                                <div key={key} className="flex justify-between border-b border-gray-100 py-2">
+                                                    <span className="font-semibold text-gray-800">{key}</span>
+                                                    <span className="text-gray-600">{value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         )}
                         
+                        {/* Shipping Info */}
                         {activeTab === 'shipping' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="flex items-start">
@@ -288,6 +299,7 @@ const ProductDetail: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Reviews */}
                         {activeTab === 'reviews' && (
                              <div className="animate-fade-in">
                                 <div className="flex items-center mb-6">
@@ -547,7 +559,7 @@ const ProductDetail: React.FC = () => {
                 <div className="p-6">
                     {activeTab === 'desc' && (
                         <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line">
-                            {product.description}
+                            <p>{product.description}</p>
                              {product.specifications && (
                                 <div className="mt-4 space-y-2">
                                     {Object.entries(product.specifications).map(([key, value]) => (
