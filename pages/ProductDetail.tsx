@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
 import { Product, Review } from '../types';
@@ -57,10 +56,6 @@ const ProductDetail: React.FC = () => {
         }
         
         window.scrollTo(0, 0);
-      } else {
-        // If product not found in current list, wait or redirect
-        // For now, redirect if context is loaded but product is missing
-        // navigate('/'); 
       }
     }
   }, [id, products, searchParams]);
@@ -201,7 +196,7 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
             
-            {/* Gallery Images (The "4 pic" request) */}
+            {/* Gallery Images Strip */}
             {allImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {allImages.map((img, i) => (
@@ -218,7 +213,7 @@ const ProductDetail: React.FC = () => {
                 </div>
             )}
             
-             {/* Desktop Tabs Positioned Here for Layout Balance */}
+             {/* Desktop Tabs */}
              <div className="hidden lg:block mt-8 animate-slide-up" style={{animationDelay: '0.1s'}}>
                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
                     <div className="flex border-b border-gray-100">
@@ -251,14 +246,18 @@ const ProductDetail: React.FC = () => {
                                 
                                 {product.specifications && Object.keys(product.specifications).length > 0 && (
                                     <>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                                            {Object.entries(product.specifications).map(([key, value]) => (
-                                                <div key={key} className="flex justify-between border-b border-gray-100 py-2">
-                                                    <span className="font-semibold text-gray-800">{key}</span>
-                                                    <span className="text-gray-600">{value}</span>
-                                                </div>
-                                            ))}
+                                        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                                                <Box size={18} className="mr-2"/> স্পেসিফিকেশন
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                                {Object.entries(product.specifications).map(([key, value]) => (
+                                                    <div key={key} className="flex justify-between border-b border-gray-200 py-2 last:border-0">
+                                                        <span className="font-semibold text-gray-800 text-sm">{key}</span>
+                                                        <span className="text-gray-600 text-sm">{value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -287,37 +286,27 @@ const ProductDetail: React.FC = () => {
                                         <p className="text-sm text-gray-600 mt-1">৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি (ম্যানুফ্যাকচারিং ত্রুটির ক্ষেত্রে)। অবশ্যই আনবক্সিং ভিডিও থাকতে হবে।</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start">
-                                    <div className="bg-purple-50 p-2 rounded-lg text-purple-600 mr-4">
-                                        <CreditCard size={24} />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">পেমেন্ট অপশন</h4>
-                                        <p className="text-sm text-gray-600 mt-1">ক্যাশ অন ডেলিভারি, বিকাশ, নগদ, রকেট এবং কার্ড পেমেন্ট।</p>
-                                    </div>
-                                </div>
                             </div>
                         )}
 
                         {/* Reviews */}
                         {activeTab === 'reviews' && (
                              <div className="animate-fade-in">
-                                <div className="flex items-center mb-6">
-                                    <div className="text-center pr-6 border-r border-gray-200">
-                                        <div className="text-4xl font-bold text-gray-900">{product.rating}</div>
-                                        <div className="flex justify-center text-amber-400 my-1">
+                                <div className="flex items-center mb-8 bg-amber-50 p-6 rounded-xl border border-amber-100">
+                                    <div className="text-center pr-8 border-r border-amber-200">
+                                        <div className="text-5xl font-black text-amber-500">{product.rating}</div>
+                                        <div className="flex justify-center text-amber-400 my-2">
                                             {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={14} fill={i < Math.round(product.rating) ? "currentColor" : "none"} />
+                                                <Star key={i} size={18} fill={i < Math.round(product.rating) ? "currentColor" : "none"} />
                                             ))}
                                         </div>
-                                        <p className="text-xs text-gray-500">{product.reviews_count} রিভিউ</p>
+                                        <p className="text-xs font-bold text-amber-700 uppercase">{product.reviews_count} ভেরিফাইড রিভিউ</p>
                                     </div>
-                                    <div className="pl-6 flex-1">
-                                         {/* Add Review Button / Form */}
+                                    <div className="pl-8 flex-1">
                                          {user ? (
-                                             <form onSubmit={handleSubmitReview} className="bg-gray-50 p-4 rounded-xl">
-                                                 <p className="text-sm font-bold text-gray-700 mb-2">আপনার মতামত দিন</p>
-                                                 <div className="flex mb-2 space-x-1">
+                                             <form onSubmit={handleSubmitReview}>
+                                                 <p className="text-sm font-bold text-gray-800 mb-2">আপনার অভিজ্ঞতা শেয়ার করুন</p>
+                                                 <div className="flex mb-3 space-x-2">
                                                      {[1, 2, 3, 4, 5].map((star) => (
                                                          <button 
                                                             type="button" 
@@ -325,55 +314,58 @@ const ProductDetail: React.FC = () => {
                                                             onClick={() => setReviewRating(star)}
                                                             className={`${star <= reviewRating ? 'text-amber-400' : 'text-gray-300'} hover:scale-110 transition-transform`}
                                                          >
-                                                             <Star size={20} fill={star <= reviewRating ? "currentColor" : "none"} />
+                                                             <Star size={24} fill={star <= reviewRating ? "currentColor" : "none"} />
                                                          </button>
                                                      ))}
                                                  </div>
-                                                 <textarea 
-                                                    required
-                                                    value={reviewComment}
-                                                    onChange={(e) => setReviewComment(e.target.value)}
-                                                    placeholder="পণ্যটি কেমন লেগেছে?"
-                                                    className="w-full p-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-green-500 mb-2"
-                                                    rows={2}
-                                                 ></textarea>
-                                                 <button 
-                                                    type="submit" 
-                                                    disabled={isSubmittingReview}
-                                                    className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors"
-                                                 >
-                                                     {isSubmittingReview ? 'পোস্ট হচ্ছে...' : 'সাবমিট করুন'}
-                                                 </button>
+                                                 <div className="relative">
+                                                    <textarea 
+                                                        required
+                                                        value={reviewComment}
+                                                        onChange={(e) => setReviewComment(e.target.value)}
+                                                        placeholder="পণ্যটি সম্পর্কে আপনার মতামত লিখুন..."
+                                                        className="w-full p-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent min-h-[80px]"
+                                                    ></textarea>
+                                                    <button 
+                                                        type="submit" 
+                                                        disabled={isSubmittingReview}
+                                                        className="absolute bottom-3 right-3 text-xs bg-amber-500 text-white px-4 py-1.5 rounded-md font-bold hover:bg-amber-600 transition-colors"
+                                                    >
+                                                        {isSubmittingReview ? 'পোস্ট হচ্ছে...' : 'সাবমিট'}
+                                                    </button>
+                                                 </div>
                                              </form>
                                          ) : (
-                                             <div className="text-center text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">
-                                                 রিভিউ দিতে দয়া করে <Link to="/login" className="text-green-600 font-bold hover:underline">লগ ইন</Link> করুন।
+                                             <div className="text-center text-sm text-gray-500">
+                                                 রিভিউ দিতে দয়া করে <Link to="/login" className="text-amber-600 font-bold hover:underline">লগ ইন</Link> করুন।
                                              </div>
                                          )}
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                     {product.reviews && product.reviews.length > 0 ? (
                                         product.reviews.map((review) => (
-                                            <div key={review.id} className="flex space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                                                <img src={review.userAvatar || `https://ui-avatars.com/api/?name=${review.userName}`} alt="" className="w-10 h-10 rounded-full border border-gray-100" />
-                                                <div>
-                                                    <div className="flex items-center">
-                                                        <h5 className="font-bold text-sm text-gray-900 mr-2">{review.userName}</h5>
-                                                        <span className="text-xs text-gray-400">{review.date}</span>
+                                            <div key={review.id} className="flex space-x-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                                                <img src={review.userAvatar || `https://ui-avatars.com/api/?name=${review.userName}`} alt="" className="w-12 h-12 rounded-full border-2 border-white shadow-sm" />
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h5 className="font-bold text-gray-900">{review.userName}</h5>
+                                                        <span className="text-xs text-gray-400 font-medium">{review.date}</span>
                                                     </div>
-                                                    <div className="flex text-amber-400 my-0.5">
+                                                    <div className="flex text-amber-400 mb-2">
                                                         {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} size={10} fill={i < review.rating ? "currentColor" : "none"} />
+                                                            <Star key={i} size={12} fill={i < review.rating ? "currentColor" : "none"} />
                                                         ))}
                                                     </div>
-                                                    <p className="text-sm text-gray-600 mt-1">{review.comment}</p>
+                                                    <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        <p className="text-center text-gray-400 py-4">এখনও কোনো রিভিউ নেই।</p>
+                                        <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                            <p className="text-gray-500">এখনও কোনো রিভিউ নেই। আপনিই প্রথম রিভিউ দিন!</p>
+                                        </div>
                                     )}
                                 </div>
                              </div>
@@ -401,10 +393,7 @@ const ProductDetail: React.FC = () => {
                         <Star size={18} fill="currentColor" />
                         <span className="ml-1 text-sm font-bold text-gray-700">{product.rating}</span>
                         <span className="mx-1 text-gray-300">•</span>
-                        <span className="text-sm text-gray-500 underline cursor-pointer" onClick={() => {
-                            setActiveTab('reviews');
-                            document.querySelector('.lg\\:hidden')?.scrollIntoView({behavior: 'smooth'});
-                        }}>
+                        <span className="text-sm text-gray-500 underline cursor-pointer hover:text-green-600" onClick={() => setActiveTab('reviews')}>
                             {product.reviews_count} রিভিউ
                         </span>
                     </div>
@@ -511,7 +500,8 @@ const ProductDetail: React.FC = () => {
                   <button 
                      onClick={() => {
                          handleAddToCart();
-                         if(!error) navigate('/cart');
+                         if(!product.stock || (product.sizes?.length && !selectedSize) || (product.colors?.length && !selectedColor)) return;
+                         navigate('/cart');
                      }}
                      disabled={product.stock <= 0}
                      className="w-full py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-xl font-bold text-lg hover:bg-gray-900 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -552,7 +542,7 @@ const ProductDetail: React.FC = () => {
                         onClick={() => setActiveTab('reviews')}
                         className={`flex-1 min-w-[100px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                     >
-                        রিভিউ ({product.reviews_count})
+                        রিভিউ
                     </button>
                 </div>
                 
@@ -561,13 +551,16 @@ const ProductDetail: React.FC = () => {
                         <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line">
                             <p>{product.description}</p>
                              {product.specifications && (
-                                <div className="mt-4 space-y-2">
-                                    {Object.entries(product.specifications).map(([key, value]) => (
-                                        <div key={key} className="flex justify-between border-b border-gray-50 py-1">
-                                            <span className="font-bold text-gray-800">{key}</span>
-                                            <span>{value}</span>
-                                        </div>
-                                    ))}
+                                <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+                                    <h4 className="font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h4>
+                                    <div className="space-y-2">
+                                        {Object.entries(product.specifications).map(([key, value]) => (
+                                            <div key={key} className="flex justify-between border-b border-gray-200 py-1.5 last:border-0">
+                                                <span className="font-semibold text-gray-800 text-xs">{key}</span>
+                                                <span className="text-gray-600 text-xs">{value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -615,7 +608,9 @@ const ProductDetail: React.FC = () => {
                     ))}
                 </div>
             ) : (
-                <p className="text-gray-500">এই ক্যাটাগরিতে অন্য কোনো পণ্য নেই।</p>
+                <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                     <p className="text-gray-500">এই ক্যাটাগরিতে অন্য কোনো পণ্য নেই।</p>
+                </div>
             )}
         </div>
 

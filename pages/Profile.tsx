@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, useShop } from '../services/store';
 import { User, Mail, Edit2, Save, Package, CreditCard, LogOut, Camera, Phone, MapPin, Calendar, CheckCircle, Gift, Award, TrendingUp, Clock, Truck, XCircle, RefreshCw } from 'lucide-react';
 import { CURRENCY } from '../constants';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Order, OrderStatus } from '../types';
 
 const Profile: React.FC = () => {
   const { user, logout, updateUserProfile, loading } = useAuth();
   const { orders, refreshData } = useShop(); 
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'settings'>('overview');
   const [formData, setFormData] = useState({
@@ -293,7 +294,7 @@ const Profile: React.FC = () => {
                                   <Package size={48} className="mx-auto text-gray-300 mb-4" />
                                   <h3 className="text-lg font-medium text-gray-900">কোনো অর্ডার নেই</h3>
                                   <p className="text-gray-500 mb-6">আপনি এখনও আমাদের শপ থেকে কিছু কেনেননি।</p>
-                                  <button onClick={() => window.location.href='/categories'} className="text-green-600 font-bold hover:underline">কেনাকাটা শুরু করুন</button>
+                                  <button onClick={() => navigate('/categories')} className="text-green-600 font-bold hover:underline">কেনাকাটা শুরু করুন</button>
                               </div>
                           )}
                       </div>

@@ -1,16 +1,16 @@
-
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Copy, DollarSign, MousePointer, TrendingUp, Wallet, CheckCircle, Clock, AlertTriangle, Send, CreditCard, Link as LinkIcon, BarChart2, ShoppingBag, Search, ExternalLink, X } from 'lucide-react';
 import { AFFILIATE_STATS, CURRENCY } from '../constants';
 import { useAuth, useShop } from '../services/store';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { UserRole, Product } from '../types';
 import { encryptResellerData } from '../utils/secureLink';
 
 const AffiliateDashboard: React.FC = () => {
   const { user } = useAuth();
   const { submitAffiliateApplication, products } = useShop();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'tools' | 'products'>('dashboard');
   
   // Reseller Tools State
@@ -395,7 +395,7 @@ const AffiliateDashboard: React.FC = () => {
                       দুঃখিত, আমাদের পলিসির সাথে সামঞ্জস্য না থাকায় আপনার আবেদনটি গ্রহণ করা সম্ভব হয়নি।
                   </p>
                    <button 
-                    onClick={() => window.location.href = '/contact'}
+                    onClick={() => navigate('/contact')}
                     className="w-full py-3 rounded-xl border border-gray-200 font-bold text-gray-700 hover:bg-gray-50 transition-colors"
                    >
                        সাপোর্টে যোগাযোগ করুন
