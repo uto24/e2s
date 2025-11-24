@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
 import { DEFAULT_SETTINGS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
@@ -91,7 +92,14 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Settings Listener
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (doc) => {
       if (doc.exists()) {
-        setSettings({ ...DEFAULT_SETTINGS, ...doc.data() as AppSettings });
+        const data = doc.data();
+        // Deep merge logic simplified: overwrite top-level keys
+        setSettings(prev => ({ 
+            ...DEFAULT_SETTINGS, 
+            ...data,
+            campaign: { ...DEFAULT_SETTINGS.campaign, ...(data.campaign || {}) },
+            popup: { ...DEFAULT_SETTINGS.popup, ...(data.popup || {}) }
+        } as AppSettings));
       } else {
         setDoc(doc.ref, DEFAULT_SETTINGS);
       }

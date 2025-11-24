@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Check, X, DollarSign, UserCheck, AlertCircle, Inbox, UserPlus, ExternalLink } from 'lucide-react';
 import { MOCK_WITHDRAWS, CURRENCY } from '../constants';
@@ -12,8 +13,12 @@ const AdminAffiliates: React.FC = () => {
 
   const fetchApplicants = async () => {
       setLoading(true);
-      const users = await getPendingAffiliates();
-      setPendingApplicants(users);
+      try {
+        const users = await getPendingAffiliates();
+        setPendingApplicants(users);
+      } catch (e) {
+        console.error("Failed to fetch applicants", e);
+      }
       setLoading(false);
   };
 

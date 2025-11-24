@@ -1,18 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
-import { Save, Sliders, Power, Megaphone, Database, Check, UploadCloud, Monitor, Image } from 'lucide-react';
+import { Save, Sliders, Power, Megaphone, Database, Check, UploadCloud, Monitor } from 'lucide-react';
 import { useShop } from '../services/store';
 import { DEFAULT_SETTINGS } from '../constants';
+import { AppSettings } from '../types';
 
 const AdminSettings: React.FC = () => {
   const { settings, updateSettings, seedDatabase, products } = useShop();
-  const [localSettings, setLocalSettings] = useState(settings);
+  const [localSettings, setLocalSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [isSaved, setIsSaved] = useState(false);
   const [isSeeded, setIsSeeded] = useState(false);
   const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
-    // Ensure deep merge if fields are missing
-    setLocalSettings({ ...DEFAULT_SETTINGS, ...settings });
+    // Deep merge safely
+    if (settings) {
+        setLocalSettings(prev => ({
+            ...DEFAULT_SETTINGS,
+            ...settings,
+            campaign: { ...DEFAULT_SETTINGS.campaign, ...(settings.campaign || {}) },
+            popup: { ...DEFAULT_SETTINGS.popup, ...(settings.popup || {}) }
+        }));
+    }
   }, [settings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
