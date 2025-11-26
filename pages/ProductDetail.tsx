@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Shield, Truck, CreditCard, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Shield, Truck, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
 import { Product, Review } from '../types';
@@ -88,12 +88,17 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-      setShowShareMenu(false);
-    }, 2000);
+    try {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        setShowShareMenu(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Clipboard access denied", err);
+      alert("Link: " + window.location.href);
+    }
   };
 
   // Combine main image and gallery images for the thumbnail strip

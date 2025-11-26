@@ -34,6 +34,8 @@ export const encryptResellerData = (affiliateId: string, price: number): string 
 
 export const decryptResellerData = (encoded: string): ResellerData | null => {
   try {
+    if (!encoded) return null;
+    
     // Restore Base64
     let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) {

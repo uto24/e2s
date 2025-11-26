@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MessageCircle, X, Phone, MessageSquare, Facebook, Headset } from 'lucide-react';
 
@@ -55,8 +56,8 @@ export const FloatingChatWidget: React.FC = () => {
                 </div>
              </button>
 
-             <button 
-                onClick={() => window.location.href = `tel:${phoneNumber}`}
+             <a 
+                href={`tel:${phoneNumber}`}
                 className="w-full flex items-center p-3 rounded-xl hover:bg-purple-50 transition-colors border border-gray-100 hover:border-purple-200 group"
              >
                 <div className="bg-purple-100 p-2 rounded-full text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
@@ -66,7 +67,7 @@ export const FloatingChatWidget: React.FC = () => {
                     <p className="text-sm font-bold text-gray-800">ফোন কল</p>
                     <p className="text-xs text-gray-500">{phoneNumber}</p>
                 </div>
-             </button>
+             </a>
           </div>
           <div className="bg-gray-50 p-3 text-center text-xs text-gray-400 border-t border-gray-100">
              সকাল ১০টা থেকে রাত ৮টা পর্যন্ত খোলা
