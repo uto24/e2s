@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Star, Minus, Plus, ShoppingCart, Shield, Truck, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Shield, Truck, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle, List, FileText } from 'lucide-react';
 import { CURRENCY } from '../constants';
 import { useCart, useShop, useAuth } from '../services/store';
 import { Product, Review } from '../types';
@@ -19,7 +19,7 @@ const ProductDetail: React.FC = () => {
   const [qty, setQty] = useState(1);
   
   // UI State
-  const [activeTab, setActiveTab] = useState<'desc' | 'shipping' | 'reviews'>('desc');
+  const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'shipping' | 'reviews'>('desc');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -226,45 +226,56 @@ const ProductDetail: React.FC = () => {
                             onClick={() => setActiveTab('desc')}
                             className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                         >
-                            পণ্যের বিবরণ
+                            <FileText size={16} className="inline mr-2 mb-1" /> বিবরণ
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('specs')}
+                            className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            <List size={16} className="inline mr-2 mb-1" /> স্পেসিফিকেশন
                         </button>
                          <button 
                             onClick={() => setActiveTab('shipping')}
                             className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                         >
-                            ডেলিভারি ও রিটার্ন
+                            <Truck size={16} className="inline mr-2 mb-1" /> ডেলিভারি
                         </button>
                         <button 
                             onClick={() => setActiveTab('reviews')}
                             className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                         >
-                            রিভিউ ({product.reviews_count})
+                            <Star size={16} className="inline mr-2 mb-1" /> রিভিউ ({product.reviews_count})
                         </button>
                     </div>
                     
                     <div className="p-8">
-                        {/* Description & Specifications */}
+                        {/* Description */}
                         {activeTab === 'desc' && (
                             <div className="prose prose-green max-w-none animate-fade-in">
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">বিবরণ</h3>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">পণ্যের বিবরণ</h3>
                                 <p className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">{product.description}</p>
-                                
-                                {product.specifications && Object.keys(product.specifications).length > 0 && (
-                                    <>
-                                        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                                            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                                                <Box size={18} className="mr-2"/> স্পেসিফিকেশন
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                                                {Object.entries(product.specifications).map(([key, value]) => (
-                                                    <div key={key} className="flex justify-between border-b border-gray-200 py-2 last:border-0">
-                                                        <span className="font-semibold text-gray-800 text-sm">{key}</span>
-                                                        <span className="text-gray-600 text-sm">{value}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                            </div>
+                        )}
+
+                        {/* Specifications */}
+                        {activeTab === 'specs' && (
+                            <div className="animate-fade-in">
+                                 {product.specifications && Object.keys(product.specifications).length > 0 ? (
+                                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                                            <Box size={18} className="mr-2"/> টেকনিক্যাল স্পেসিফিকেশন
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                            {Object.entries(product.specifications).map(([key, value]) => (
+                                                <div key={key} className="flex justify-between border-b border-gray-200 py-2 last:border-0">
+                                                    <span className="font-semibold text-gray-800 text-sm">{key}</span>
+                                                    <span className="text-gray-600 text-sm font-medium">{value}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 text-center">অতিরিক্ত কোনো তথ্য নেই।</p>
                                 )}
                             </div>
                         )}
@@ -533,19 +544,25 @@ const ProductDetail: React.FC = () => {
                 <div className="flex border-b border-gray-100 overflow-x-auto">
                     <button 
                         onClick={() => setActiveTab('desc')}
-                        className={`flex-1 min-w-[100px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                     >
                         বিবরণ
                     </button>
+                    <button 
+                        onClick={() => setActiveTab('specs')}
+                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                    >
+                        স্পেকস
+                    </button>
                         <button 
                         onClick={() => setActiveTab('shipping')}
-                        className={`flex-1 min-w-[100px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                     >
                         ডেলিভারি
                     </button>
                     <button 
                         onClick={() => setActiveTab('reviews')}
-                        className={`flex-1 min-w-[100px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
                     >
                         রিভিউ
                     </button>
@@ -555,19 +572,21 @@ const ProductDetail: React.FC = () => {
                     {activeTab === 'desc' && (
                         <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line">
                             <p>{product.description}</p>
-                             {product.specifications && (
-                                <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-                                    <h4 className="font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h4>
-                                    <div className="space-y-2">
-                                        {Object.entries(product.specifications).map(([key, value]) => (
-                                            <div key={key} className="flex justify-between border-b border-gray-200 py-1.5 last:border-0">
-                                                <span className="font-semibold text-gray-800 text-xs">{key}</span>
-                                                <span className="text-gray-600 text-xs">{value}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                        </div>
+                    )}
+                    {activeTab === 'specs' && (
+                         <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h4>
+                            {product.specifications ? (
+                                <div className="space-y-2">
+                                    {Object.entries(product.specifications).map(([key, value]) => (
+                                        <div key={key} className="flex justify-between border-b border-gray-200 py-1.5 last:border-0">
+                                            <span className="font-semibold text-gray-800 text-xs">{key}</span>
+                                            <span className="text-gray-600 text-xs">{value}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            ) : <p className="text-gray-500 text-xs">কোনো তথ্য নেই</p>}
                         </div>
                     )}
                     {activeTab === 'shipping' && (
@@ -579,6 +598,9 @@ const ProductDetail: React.FC = () => {
                     )}
                     {activeTab === 'reviews' && (
                         <div className="space-y-4">
+                            {user && (
+                                <button onClick={() => window.scrollTo(0,0)} className="w-full text-center text-green-600 text-xs font-bold mb-4">রিভিউ লিখতে উপরে যান</button>
+                            )}
                             {product.reviews && product.reviews.length > 0 ? (
                                 product.reviews.map((review) => (
                                     <div key={review.id} className="border-b border-gray-50 pb-3">

@@ -76,7 +76,8 @@ export const PRODUCTS: Product[] = [
     images: [
         "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1000&q=80",
         "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1510017803434-a899398421b3?auto=format&fit=crop&w=1000&q=80"
+        "https://images.unsplash.com/photo-1510017803434-a899398421b3?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=1000&q=80"
     ],
     rating: 4.5,
     reviews_count: 85,
@@ -88,7 +89,8 @@ export const PRODUCTS: Product[] = [
         "Display": "AMOLED",
         "Water Resistance": "5ATM",
         "Sensors": "Heart Rate, SpO2",
-        "Battery": "7 Days"
+        "Battery": "7 Days",
+        "Connectivity": "Bluetooth 5.2"
     }
   },
   {
@@ -104,7 +106,8 @@ export const PRODUCTS: Product[] = [
     images: [
         "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1000&q=80",
         "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1000&q=80"
+        "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=1000&q=80"
     ],
     rating: 4.2,
     reviews_count: 200,
@@ -118,7 +121,8 @@ export const PRODUCTS: Product[] = [
         "Material": "100% Cotton",
         "Fit": "Regular Fit",
         "Wash Care": "Machine Wash",
-        "Origin": "Bangladesh"
+        "Origin": "Bangladesh",
+        "GSM": "160"
     }
   },
   {
@@ -132,7 +136,9 @@ export const PRODUCTS: Product[] = [
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=80",
     images: [
         "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?auto=format&fit=crop&w=1000&q=80"
+        "https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1598440947619-2c35fc9b0570?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=1000&q=80"
     ],
     rating: 4.9,
     reviews_count: 50,
@@ -144,7 +150,8 @@ export const PRODUCTS: Product[] = [
         "Volume": "30ml",
         "Key Ingredients": "Vitamin C, Hyaluronic Acid",
         "Skin Type": "All Skin Types",
-        "Paraben Free": "Yes"
+        "Paraben Free": "Yes",
+        "Expiry": "2 Years"
     }
   }
 ];
