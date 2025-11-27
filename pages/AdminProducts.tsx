@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Plus, Search, Filter, X, Image as ImageIcon, DollarSign, Truck, CreditCard } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, X, Image as ImageIcon, DollarSign, Truck, CreditCard, Save } from 'lucide-react';
 import { useShop } from '../services/store';
 import { CURRENCY } from '../constants';
 import { Product } from '../types';
 
 const AdminProducts: React.FC = () => {
-  const { products, addProduct, deleteProduct } = useShop();
+  const { products, addProduct, updateProduct, deleteProduct } = useShop();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const AdminProducts: React.FC = () => {
     price: '',
     wholesalePrice: '',
     category: '',
-    images: '', // Changed from image to images (string for textarea)
+    images: '', 
     stock: '',
     description: '',
     sizes: '',
@@ -38,13 +39,50 @@ const AdminProducts: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEdit = (product: Product) => {
+      setEditingProduct(product);
+      setFormData({
+          title: product.title,
+          price: product.price.toString(),
+          wholesalePrice: product.wholesalePrice.toString(),
+          category: product.category,
+          images: product.images ? product.images.join(', ') : product.image,
+          stock: product.stock.toString(),
+          description: product.description,
+          sizes: product.sizes ? product.sizes.join(', ') : '',
+          colors: product.colors ? product.colors.join(', ') : '',
+          shippingInside: product.shippingFees?.inside.toString() || '60',
+          shippingOutside: product.shippingFees?.outside.toString() || '120',
+          isCodAvailable: product.isCodAvailable
+      });
+      setIsModalOpen(true);
+  };
+
+  const handleClose = () => {
+      setIsModalOpen(false);
+      setEditingProduct(null);
+      setFormData({
+        title: '',
+        price: '',
+        wholesalePrice: '',
+        category: '',
+        images: '',
+        stock: '',
+        description: '',
+        sizes: '',
+        colors: '',
+        shippingInside: '60',
+        shippingOutside: '120',
+        isCodAvailable: true
+      });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const sellingPrice = parseFloat(formData.price) || 0;
     const wholesalePrice = parseFloat(formData.wholesalePrice) || sellingPrice;
     
-    // Process Images
     const imageList = formData.images
       .split(',')
       .map(url => url.trim())
@@ -52,8 +90,7 @@ const AdminProducts: React.FC = () => {
       
     const mainImage = imageList.length > 0 ? imageList[0] : 'https://images.unsplash.com/photo-1553456558-aff63285bdd1?auto=format&fit=crop&w=800&q=80';
 
-    const newProduct: Product = {
-      id: Math.random().toString(36).substr(2, 9),
+    const productData: Partial<Product> = {
       slug: formData.title.toLowerCase().replace(/ /g, '-'),
       title: formData.title,
       description: formData.description || 'No description provided.',
@@ -62,8 +99,6 @@ const AdminProducts: React.FC = () => {
       category: formData.category || 'General',
       image: mainImage,
       images: imageList,
-      rating: 0,
-      reviews_count: 0,
       stock: parseInt(formData.stock) || 0,
       status: 'active',
       sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [],
@@ -75,22 +110,23 @@ const AdminProducts: React.FC = () => {
       isCodAvailable: formData.isCodAvailable
     };
 
-    addProduct(newProduct);
-    setIsModalOpen(false);
-    setFormData({
-      title: '',
-      price: '',
-      wholesalePrice: '',
-      category: '',
-      images: '',
-      stock: '',
-      description: '',
-      sizes: '',
-      colors: '',
-      shippingInside: '60',
-      shippingOutside: '120',
-      isCodAvailable: true
-    });
+    try {
+      if (editingProduct) {
+          await updateProduct(editingProduct.id, productData);
+      } else {
+          const newProduct = {
+              ...productData,
+              id: Math.random().toString(36).substr(2, 9),
+              rating: 0,
+              reviews_count: 0,
+          } as Product;
+          await addProduct(newProduct);
+      }
+      handleClose();
+    } catch (error) {
+      console.error("Failed to save product:", error);
+      alert("Failed to save product. Please check console.");
+    }
   };
 
   return (
@@ -106,14 +142,7 @@ const AdminProducts: React.FC = () => {
         </button>
       </div>
 
-      {products.length === 0 && (
-        <div className="bg-blue-50 text-blue-700 p-4 rounded-md border border-blue-200">
-          No products found. Click "Add Product" to create your first item.
-        </div>
-      )}
-
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50">
           <div className="relative w-full sm:w-96">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -127,39 +156,17 @@ const AdminProducts: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <button className="flex items-center px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 text-sm hover:bg-gray-50">
-              <Filter size={16} className="mr-2" /> Filter
-            </button>
-          </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pricing
-                </th>
-                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Shipping
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -172,7 +179,6 @@ const AdminProducts: React.FC = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                        <div className="text-xs text-gray-500">SKU: {product.id.toUpperCase()}</div>
                       </div>
                     </div>
                   </td>
@@ -181,39 +187,28 @@ const AdminProducts: React.FC = () => {
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex flex-col">
-                      <span className="text-gray-900 font-medium">Sell: {CURRENCY}{product.price}</span>
-                      <span className="text-gray-500 text-xs">Wholesale: {CURRENCY}{product.wholesalePrice}</span>
-                    </div>
-                  </td>
-                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex flex-col text-xs">
-                       <span>In: {CURRENCY}{product.shippingFees?.inside}</span>
-                       <span>Out: {CURRENCY}{product.shippingFees?.outside}</span>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {CURRENCY}{product.price}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className={`h-2.5 w-2.5 rounded-full mr-2 ${product.stock > 10 ? 'bg-green-500' : product.stock > 0 ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
-                      <span className="text-sm text-gray-900">{product.stock}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                     <div className="flex flex-col space-y-1">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {product.status.toUpperCase()}
-                      </span>
-                      {!product.isCodAvailable && <span className="text-xs text-red-500 font-semibold">NO COD</span>}
-                     </div>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {product.stock}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50">
+                      <button 
+                        onClick={() => handleEdit(product)}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
+                      >
                         <Edit size={18} />
                       </button>
                       <button 
-                        onClick={() => deleteProduct(product.id)}
+                        onClick={() => {
+                            if(window.confirm('Are you sure you want to delete this product?')) {
+                                deleteProduct(product.id);
+                            }
+                        }}
                         className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
                       >
                         <Trash2 size={18} />
@@ -227,17 +222,17 @@ const AdminProducts: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Product Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" onClick={() => setIsModalOpen(false)}></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" onClick={handleClose}></div>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">Add New Product</h3>
-                  <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <h3 className="text-lg leading-6 font-bold text-gray-900">
+                      {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  </h3>
+                  <button onClick={handleClose} className="text-gray-400 hover:text-red-500 transition-colors">
                     <X size={24} />
                   </button>
                 </div>
@@ -267,13 +262,12 @@ const AdminProducts: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 flex items-center"><DollarSign size={14} className="mr-1"/> Wholesale Price</label>
+                      <label className="block text-sm font-medium text-gray-700 flex items-center"><DollarSign size={14} className="mr-1"/> Wholesale</label>
                       <input 
                         type="number" 
                         name="wholesalePrice" 
                         value={formData.wholesalePrice}
                         onChange={handleInputChange}
-                        placeholder="Cost for affiliates"
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                       />
                     </div>
@@ -292,112 +286,46 @@ const AdminProducts: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 flex items-center"><Truck size={14} className="mr-1"/> Shipping (Inside)</label>
-                      <input 
-                        type="number" 
-                        name="shippingInside" 
-                        value={formData.shippingInside}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                      />
+                      <label className="block text-sm font-medium text-gray-700">Inside City</label>
+                      <input type="number" name="shippingInside" value={formData.shippingInside} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
                     </div>
                      <div>
-                      <label className="block text-sm font-medium text-gray-700 flex items-center"><Truck size={14} className="mr-1"/> Shipping (Outside)</label>
-                      <input 
-                        type="number" 
-                        name="shippingOutside" 
-                        value={formData.shippingOutside}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                      />
+                      <label className="block text-sm font-medium text-gray-700">Outside City</label>
+                      <input type="number" name="shippingOutside" value={formData.shippingOutside} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
                     </div>
                      <div className="flex items-center pt-6">
-                      <input
-                        id="isCodAvailable"
-                        name="isCodAvailable"
-                        type="checkbox"
-                        checked={formData.isCodAvailable}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="isCodAvailable" className="ml-2 block text-sm font-medium text-gray-700">
-                         Allow COD?
-                      </label>
+                      <input type="checkbox" name="isCodAvailable" checked={formData.isCodAvailable} onChange={handleInputChange} className="h-4 w-4 text-green-600 rounded"/>
+                      <label className="ml-2 block text-sm font-medium text-gray-700">Allow COD?</label>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select 
-                      name="category" 
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    >
-                      <option value="">Select Category</option>
-                      <option value="Electronics">Electronics</option>
-                      <option value="Fashion">Fashion</option>
-                      <option value="Home">Home</option>
-                      <option value="Beauty">Beauty</option>
-                    </select>
+                    <input type="text" name="category" value={formData.category} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Electronics, Fashion..."/>
                   </div>
                   
-                  {/* Variants */}
                    <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Sizes (Comma separated)</label>
-                      <input 
-                        type="text" 
-                        name="sizes" 
-                        value={formData.sizes}
-                        onChange={handleInputChange}
-                        placeholder="S, M, L, XL"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                      />
+                      <input type="text" name="sizes" value={formData.sizes} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Colors (Comma separated)</label>
-                      <input 
-                        type="text" 
-                        name="colors" 
-                        value={formData.colors}
-                        onChange={handleInputChange}
-                        placeholder="Red, Blue, Black"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                      />
+                      <input type="text" name="colors" value={formData.colors} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Images (Comma separated URLs)</label>
-                    <div className="mt-1">
-                      <textarea 
-                        name="images" 
-                        value={formData.images}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                        rows={3}
-                        className="block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Add multiple image links separated by commas.</p>
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700">Images (URLs)</label>
+                    <textarea name="images" value={formData.images} onChange={handleInputChange} rows={2} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"/>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea 
-                      name="description" 
-                      rows={4} 
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    ></textarea>
+                    <textarea name="description" rows={3} value={formData.description} onChange={handleInputChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
                   </div>
                   <div className="mt-5 sm:mt-6">
-                    <button
-                      type="submit"
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                    >
-                      Save Product
+                    <button type="submit" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none">
+                      <Save size={18} className="mr-2" /> {editingProduct ? 'Update Product' : 'Save Product'}
                     </button>
                   </div>
                 </form>

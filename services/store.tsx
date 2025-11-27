@@ -1,7 +1,7 @@
 
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem, User, UserRole, AppSettings, Review, Order } from '../types';
+import { Product, CartItem, User, UserRole, AppSettings, Review, Order, WithdrawRequest } from '../types';
 import { DEFAULT_SETTINGS, PRODUCTS as DEFAULT_PRODUCTS } from '../constants';
 import { 
   signInWithPopup, 
@@ -48,6 +48,7 @@ interface ShopContextType {
   submitAffiliateApplication: (data: any) => Promise<void>;
   getPendingAffiliates: () => Promise<User[]>;
   reviewAffiliate: (userId: string, action: 'approve' | 'reject') => Promise<void>;
+  requestWithdraw: (request: WithdrawRequest) => Promise<void>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -238,6 +239,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log("Database seeded successfully!");
   };
 
+  const requestWithdraw = async (request: WithdrawRequest) => {
+    await setDoc(doc(db, "withdraws", request.id), request);
+  };
+
   return (
     <ShopContext.Provider value={{ 
       products, 
@@ -254,7 +259,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       seedDatabase,
       submitAffiliateApplication,
       getPendingAffiliates,
-      reviewAffiliate
+      reviewAffiliate,
+      requestWithdraw
     }}>
       {children}
     </ShopContext.Provider>

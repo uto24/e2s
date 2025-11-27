@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Star, Minus, Plus, ShoppingCart, Shield, Truck, ChevronRight, Share2, Box, Check, Facebook, AlertTriangle, List, FileText } from 'lucide-react';
@@ -18,7 +17,6 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
   
-  // UI State
   const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'shipping' | 'reviews'>('desc');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -27,10 +25,8 @@ const ProductDetail: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
 
-  // Reseller Data State
   const [resellerData, setResellerData] = useState<{ aid: string; price: number } | null>(null);
 
-  // Review State
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -41,21 +37,17 @@ const ProductDetail: React.FC = () => {
       if (found) {
         setProduct(found);
         setMainImage(found.image);
-        setSelectedSize('');
-        setSelectedColor('');
-        setQty(1);
+        // Only reset selection if changing products
+        if (!selectedSize) setSelectedSize('');
+        if (!selectedColor) setSelectedColor('');
         
-        // Check for encrypted reseller link
         const ref = searchParams.get('r');
         if (ref) {
             const decoded = decryptResellerData(ref);
             if (decoded) {
-                console.log("Reseller Link Detected:", decoded);
                 setResellerData({ aid: decoded.aid, price: decoded.p });
             }
         }
-        
-        window.scrollTo(0, 0);
       }
     }
   }, [id, products, searchParams]);
@@ -77,7 +69,6 @@ const ProductDetail: React.FC = () => {
       return;
     }
     
-    // Add to cart with reseller info if available
     addToCart(
         product, 
         qty, 
@@ -101,11 +92,9 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  // Combine main image and gallery images for the thumbnail strip
-  // Use Set to avoid duplicates if main image is also in gallery
   const allImages = Array.from(new Set([product.image, ...(product.images || [])]));
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     
@@ -120,29 +109,24 @@ const ProductDetail: React.FC = () => {
       date: new Date().toLocaleDateString()
     };
 
-    setTimeout(() => {
-      addReview(product.id, newReview);
+    try {
+      await addReview(product.id, newReview);
       setReviewComment('');
       setReviewRating(5);
+      alert("রিভিউ সফলভাবে যোগ করা হয়েছে!");
+    } catch (e) {
+      console.error(e);
+      alert("রিভিউ যোগ করতে সমস্যা হয়েছে।");
+    } finally {
       setIsSubmittingReview(false);
-      // Optimistic update
-      setProduct(prev => prev ? {
-          ...prev,
-          reviews: [newReview, ...(prev.reviews || [])],
-          reviews_count: (prev.reviews_count || 0) + 1,
-          rating: parseFloat((((prev.rating * (prev.reviews_count || 0)) + reviewRating) / ((prev.reviews_count || 0) + 1)).toFixed(1))
-      } : null);
-    }, 500);
+    }
   };
 
-  // Determine displayed price
-  // If reseller data exists, ALWAYS show that price and hide sale badges to avoid confusion
   const displayPrice = resellerData ? resellerData.price : (product.sale_price || product.price);
   const showDiscount = !resellerData && product.sale_price;
 
   return (
     <div className="bg-slate-50 min-h-screen pb-12 animate-fade-in">
-      {/* Breadcrumbs */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav className="flex text-sm font-medium text-gray-500 overflow-x-auto whitespace-nowrap scrollbar-hide">
@@ -158,13 +142,9 @@ const ProductDetail: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
           
-          {/* Left Column: Images (7 Cols) */}
           <div className="lg:col-span-7 flex flex-col space-y-4 animate-slide-up">
-            <div 
-              className="relative w-full bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm group"
-            >
+            <div className="relative w-full bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm group">
               <div className="aspect-[4/3] w-full flex items-center justify-center p-4 bg-white relative">
-                 {/* Share Button */}
                 <div className="absolute top-4 right-4 z-20">
                     <div className="relative">
                         <button 
@@ -187,13 +167,8 @@ const ProductDetail: React.FC = () => {
                     </div>
                 </div>
 
-                <img
-                    src={mainImage}
-                    alt={product.title}
-                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105 cursor-zoom-in"
-                />
+                <img src={mainImage} alt={product.title} className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105 cursor-zoom-in"/>
               </div>
-              
               {showDiscount && (
                 <span className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-lg z-10 animate-pulse-glow">
                   -{Math.round(((product.price - product.sale_price!) / product.price) * 100)}% ছাড়
@@ -201,70 +176,45 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
             
-            {/* Gallery Images Strip */}
             {allImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {allImages.map((img, i) => (
-                    <button 
-                    key={i} 
-                    onClick={() => setMainImage(img)}
-                    className={`relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl border-2 overflow-hidden transition-all ${
-                        mainImage === img ? 'border-green-600 ring-2 ring-green-100 opacity-100' : 'border-gray-100 hover:border-green-300 opacity-80 hover:opacity-100'
-                    }`}
-                    >
-                    <img src={img} alt={`Product ${i}`} className="w-full h-full object-cover" />
+                    <button key={i} onClick={() => setMainImage(img)} className={`relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl border-2 overflow-hidden transition-all ${mainImage === img ? 'border-green-600 ring-2 ring-green-100 opacity-100' : 'border-gray-100 hover:border-green-300 opacity-80 hover:opacity-100'}`}>
+                        <img src={img} alt={`Product ${i}`} className="w-full h-full object-cover" />
                     </button>
                 ))}
                 </div>
             )}
             
-             {/* Desktop Tabs */}
              <div className="hidden lg:block mt-8 animate-slide-up" style={{animationDelay: '0.1s'}}>
                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
                     <div className="flex border-b border-gray-100">
-                        <button 
-                            onClick={() => setActiveTab('desc')}
-                            className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                        >
+                        <button onClick={() => setActiveTab('desc')} className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
                             <FileText size={16} className="inline mr-2 mb-1" /> বিবরণ
                         </button>
-                        <button 
-                            onClick={() => setActiveTab('specs')}
-                            className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                        >
+                        <button onClick={() => setActiveTab('specs')} className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
                             <List size={16} className="inline mr-2 mb-1" /> স্পেসিফিকেশন
                         </button>
-                         <button 
-                            onClick={() => setActiveTab('shipping')}
-                            className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                        >
+                         <button onClick={() => setActiveTab('shipping')} className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
                             <Truck size={16} className="inline mr-2 mb-1" /> ডেলিভারি
                         </button>
-                        <button 
-                            onClick={() => setActiveTab('reviews')}
-                            className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                        >
+                        <button onClick={() => setActiveTab('reviews')} className={`flex-1 py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
                             <Star size={16} className="inline mr-2 mb-1" /> রিভিউ ({product.reviews_count})
                         </button>
                     </div>
                     
                     <div className="p-8">
-                        {/* Description */}
                         {activeTab === 'desc' && (
                             <div className="prose prose-green max-w-none animate-fade-in">
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">পণ্যের বিবরণ</h3>
                                 <p className="text-gray-600 leading-relaxed whitespace-pre-line mb-6">{product.description}</p>
                             </div>
                         )}
-
-                        {/* Specifications */}
                         {activeTab === 'specs' && (
                             <div className="animate-fade-in">
                                  {product.specifications && Object.keys(product.specifications).length > 0 ? (
                                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                                            <Box size={18} className="mr-2"/> টেকনিক্যাল স্পেসিফিকেশন
-                                        </h3>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center"><Box size={18} className="mr-2"/> টেকনিক্যাল স্পেসিফিকেশন</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                                             {Object.entries(product.specifications).map(([key, value]) => (
                                                 <div key={key} className="flex justify-between border-b border-gray-200 py-2 last:border-0">
@@ -274,47 +224,28 @@ const ProductDetail: React.FC = () => {
                                             ))}
                                         </div>
                                     </div>
-                                ) : (
-                                    <p className="text-gray-500 text-center">অতিরিক্ত কোনো তথ্য নেই।</p>
-                                )}
+                                ) : <p className="text-gray-500 text-center">অতিরিক্ত কোনো তথ্য নেই।</p>}
                             </div>
                         )}
-                        
-                        {/* Shipping Info */}
                         {activeTab === 'shipping' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="flex items-start">
-                                    <div className="bg-blue-50 p-2 rounded-lg text-blue-600 mr-4">
-                                        <Truck size={24} />
-                                    </div>
+                                    <div className="bg-blue-50 p-2 rounded-lg text-blue-600 mr-4"><Truck size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-gray-900">ডেলিভারি চার্জ</h4>
                                         <p className="text-sm text-gray-600 mt-1">ঢাকার ভিতরে: {CURRENCY}{product.shippingFees?.inside} (২৪-৪৮ ঘন্টা)</p>
                                         <p className="text-sm text-gray-600">ঢাকার বাইরে: {CURRENCY}{product.shippingFees?.outside} (২-৫ দিন)</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start">
-                                    <div className="bg-green-50 p-2 rounded-lg text-green-600 mr-4">
-                                        <Shield size={24} />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">ওয়ারেন্টি পলিসি</h4>
-                                        <p className="text-sm text-gray-600 mt-1">৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি (ম্যানুফ্যাকচারিং ত্রুটির ক্ষেত্রে)। অবশ্যই আনবক্সিং ভিডিও থাকতে হবে।</p>
-                                    </div>
-                                </div>
                             </div>
                         )}
-
-                        {/* Reviews */}
                         {activeTab === 'reviews' && (
                              <div className="animate-fade-in">
                                 <div className="flex items-center mb-8 bg-amber-50 p-6 rounded-xl border border-amber-100">
                                     <div className="text-center pr-8 border-r border-amber-200">
                                         <div className="text-5xl font-black text-amber-500">{product.rating}</div>
                                         <div className="flex justify-center text-amber-400 my-2">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={18} fill={i < Math.round(product.rating) ? "currentColor" : "none"} />
-                                            ))}
+                                            {[...Array(5)].map((_, i) => <Star key={i} size={18} fill={i < Math.round(product.rating) ? "currentColor" : "none"} />)}
                                         </div>
                                         <p className="text-xs font-bold text-amber-700 uppercase">{product.reviews_count} ভেরিফাইড রিভিউ</p>
                                     </div>
@@ -324,41 +255,25 @@ const ProductDetail: React.FC = () => {
                                                  <p className="text-sm font-bold text-gray-800 mb-2">আপনার অভিজ্ঞতা শেয়ার করুন</p>
                                                  <div className="flex mb-3 space-x-2">
                                                      {[1, 2, 3, 4, 5].map((star) => (
-                                                         <button 
-                                                            type="button" 
-                                                            key={star} 
-                                                            onClick={() => setReviewRating(star)}
-                                                            className={`${star <= reviewRating ? 'text-amber-400' : 'text-gray-300'} hover:scale-110 transition-transform`}
-                                                         >
+                                                         <button type="button" key={star} onClick={() => setReviewRating(star)} className={`${star <= reviewRating ? 'text-amber-400' : 'text-gray-300'} hover:scale-110 transition-transform`}>
                                                              <Star size={24} fill={star <= reviewRating ? "currentColor" : "none"} />
                                                          </button>
                                                      ))}
                                                  </div>
                                                  <div className="relative">
-                                                    <textarea 
-                                                        required
-                                                        value={reviewComment}
-                                                        onChange={(e) => setReviewComment(e.target.value)}
-                                                        placeholder="পণ্যটি সম্পর্কে আপনার মতামত লিখুন..."
-                                                        className="w-full p-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent min-h-[80px]"
-                                                    ></textarea>
-                                                    <button 
-                                                        type="submit" 
-                                                        disabled={isSubmittingReview}
-                                                        className="absolute bottom-3 right-3 text-xs bg-amber-500 text-white px-4 py-1.5 rounded-md font-bold hover:bg-amber-600 transition-colors"
-                                                    >
-                                                        {isSubmittingReview ? 'পোস্ট হচ্ছে...' : 'সাবমিট'}
+                                                    <textarea required value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} placeholder="মতামত লিখুন..." className="w-full p-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent min-h-[80px]"></textarea>
+                                                    <button type="submit" disabled={isSubmittingReview} className="absolute bottom-3 right-3 text-xs bg-amber-500 text-white px-4 py-1.5 rounded-md font-bold hover:bg-amber-600 transition-colors">
+                                                        {isSubmittingReview ? '...' : 'সাবমিট'}
                                                     </button>
                                                  </div>
                                              </form>
                                          ) : (
                                              <div className="text-center text-sm text-gray-500">
-                                                 রিভিউ দিতে দয়া করে <Link to="/login" className="text-amber-600 font-bold hover:underline">লগ ইন</Link> করুন।
+                                                 রিভিউ দিতে <Link to="/login" className="text-amber-600 font-bold hover:underline">লগ ইন</Link> করুন।
                                              </div>
                                          )}
                                     </div>
                                 </div>
-
                                 <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                     {product.reviews && product.reviews.length > 0 ? (
                                         product.reviews.map((review) => (
@@ -370,147 +285,79 @@ const ProductDetail: React.FC = () => {
                                                         <span className="text-xs text-gray-400 font-medium">{review.date}</span>
                                                     </div>
                                                     <div className="flex text-amber-400 mb-2">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} size={12} fill={i < review.rating ? "currentColor" : "none"} />
-                                                        ))}
+                                                        {[...Array(5)].map((_, i) => <Star key={i} size={12} fill={i < review.rating ? "currentColor" : "none"} />)}
                                                     </div>
                                                     <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
                                                 </div>
                                             </div>
                                         ))
-                                    ) : (
-                                        <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                            <p className="text-gray-500">এখনও কোনো রিভিউ নেই। আপনিই প্রথম রিভিউ দিন!</p>
-                                        </div>
-                                    )}
+                                    ) : <p className="text-gray-500 text-center">এখনও কোনো রিভিউ নেই।</p>}
                                 </div>
                              </div>
                         )}
                     </div>
                  </div>
              </div>
-
           </div>
 
-          {/* Right Column: Product Info (5 Cols) */}
           <div className="mt-8 lg:mt-0 lg:col-span-5 lg:sticky lg:top-24 h-fit animate-slide-up" style={{animationDelay: '0.2s'}}>
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-8">
               <div className="mb-6">
                  <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded uppercase tracking-wider">{product.category}</span>
-                    {resellerData && (
-                        <span className="text-xs font-bold text-white bg-blue-600 px-2 py-1 rounded uppercase tracking-wider animate-pulse">স্পেশাল প্রাইস</span>
-                    )}
+                    {resellerData && <span className="text-xs font-bold text-white bg-blue-600 px-2 py-1 rounded uppercase tracking-wider animate-pulse">স্পেশাল প্রাইস</span>}
                  </div>
                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-2">{product.title}</h1>
-                 
                  <div className="flex items-center space-x-4 mb-4">
                     <div className="flex items-center text-amber-400">
                         <Star size={18} fill="currentColor" />
                         <span className="ml-1 text-sm font-bold text-gray-700">{product.rating}</span>
                         <span className="mx-1 text-gray-300">•</span>
-                        <span className="text-sm text-gray-500 underline cursor-pointer hover:text-green-600" onClick={() => setActiveTab('reviews')}>
-                            {product.reviews_count} রিভিউ
-                        </span>
+                        <span className="text-sm text-gray-500 underline cursor-pointer hover:text-green-600" onClick={() => setActiveTab('reviews')}>{product.reviews_count} রিভিউ</span>
                     </div>
-                    {product.stock > 0 ? (
-                         <div className="flex items-center text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">
-                            <Box size={12} className="mr-1" /> স্টক এভেইলেবল
-                         </div>
-                    ) : (
-                        <div className="flex items-center text-red-500 text-xs font-bold bg-red-50 px-2 py-1 rounded-full">
-                            <AlertTriangle size={12} className="mr-1" /> স্টক আউট
-                         </div>
-                    )}
+                    {product.stock > 0 ? <div className="flex items-center text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded-full"><Box size={12} className="mr-1" /> স্টক এভেইলেবল</div> : <div className="flex items-center text-red-500 text-xs font-bold bg-red-50 px-2 py-1 rounded-full"><AlertTriangle size={12} className="mr-1" /> স্টক আউট</div>}
                  </div>
-
                  <div className="flex items-end gap-3 border-b border-gray-100 pb-6">
-                     <span className="text-4xl font-black text-gray-900 tracking-tight">
-                         {CURRENCY}{displayPrice.toLocaleString()}
-                     </span>
-                     {showDiscount && (
-                         <div className="flex flex-col mb-1">
-                             <span className="text-gray-400 text-sm line-through font-medium">
-                                 {CURRENCY}{product.price.toLocaleString()}
-                             </span>
-                         </div>
-                     )}
+                     <span className="text-4xl font-black text-gray-900 tracking-tight">{CURRENCY}{displayPrice.toLocaleString()}</span>
+                     {showDiscount && <span className="text-gray-400 text-sm line-through font-medium">{CURRENCY}{product.price.toLocaleString()}</span>}
                  </div>
               </div>
 
-              {/* Selectors */}
               <div className="space-y-6 mb-8">
                   {product.sizes && product.sizes.length > 0 && (
                       <div>
                           <span className="text-sm font-bold text-gray-900 mb-3 block">সাইজ: {selectedSize}</span>
                           <div className="flex flex-wrap gap-3">
                               {product.sizes.map(size => (
-                                  <button 
-                                    key={size}
-                                    onClick={() => setSelectedSize(size)}
-                                    className={`min-w-[3rem] h-10 px-3 rounded-lg border text-sm font-bold transition-all ${selectedSize === size ? 'border-green-600 bg-green-600 text-white shadow-md' : 'border-gray-200 text-gray-700 hover:border-green-600'}`}
-                                  >
-                                      {size}
-                                  </button>
+                                  <button key={size} onClick={() => setSelectedSize(size)} className={`min-w-[3rem] h-10 px-3 rounded-lg border text-sm font-bold transition-all ${selectedSize === size ? 'border-green-600 bg-green-600 text-white shadow-md' : 'border-gray-200 text-gray-700 hover:border-green-600'}`}>{size}</button>
                               ))}
                           </div>
                       </div>
                   )}
-                  
                   {product.colors && product.colors.length > 0 && (
                       <div>
                           <span className="text-sm font-bold text-gray-900 mb-3 block">কালার: {selectedColor}</span>
                           <div className="flex flex-wrap gap-3">
                               {product.colors.map(color => (
-                                  <button 
-                                    key={color}
-                                    onClick={() => setSelectedColor(color)}
-                                    className={`px-4 h-10 rounded-lg border text-sm font-bold transition-all ${selectedColor === color ? 'border-green-600 bg-green-50 text-green-700 shadow-sm' : 'border-gray-200 text-gray-700 hover:border-green-600'}`}
-                                  >
-                                      {color}
-                                  </button>
+                                  <button key={color} onClick={() => setSelectedColor(color)} className={`px-4 h-10 rounded-lg border text-sm font-bold transition-all ${selectedColor === color ? 'border-green-600 bg-green-50 text-green-700 shadow-sm' : 'border-gray-200 text-gray-700 hover:border-green-600'}`}>{color}</button>
                               ))}
                           </div>
                       </div>
                   )}
-
                   <div>
                       <span className="text-sm font-bold text-gray-900 mb-3 block">পরিমাণ</span>
                       <div className="flex items-center w-32 border border-gray-200 rounded-xl bg-gray-50">
-                          <button 
-                            onClick={() => setQty(Math.max(1, qty - 1))}
-                            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600"
-                          >
-                              <Minus size={16} />
-                          </button>
-                          <input 
-                            type="text" 
-                            readOnly
-                            value={qty}
-                            className="w-12 h-10 text-center bg-transparent font-bold text-gray-900 focus:outline-none"
-                          />
-                          <button 
-                             onClick={() => setQty(qty + 1)}
-                             className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600"
-                           >
-                              <Plus size={16} />
-                          </button>
+                          <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600"><Minus size={16} /></button>
+                          <input type="text" readOnly value={qty} className="w-12 h-10 text-center bg-transparent font-bold text-gray-900 focus:outline-none"/>
+                          <button onClick={() => setQty(qty + 1)} className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600"><Plus size={16} /></button>
                       </div>
                   </div>
               </div>
               
-              {error && (
-                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold mb-4 flex items-center animate-pulse">
-                      <AlertTriangle size={16} className="mr-2" /> {error}
-                  </div>
-              )}
+              {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold mb-4 flex items-center animate-pulse"><AlertTriangle size={16} className="mr-2" /> {error}</div>}
 
               <div className="flex flex-col gap-4">
-                  <button 
-                    onClick={handleAddToCart}
-                    disabled={product.stock <= 0}
-                    className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]"
-                  >
+                  <button onClick={handleAddToCart} disabled={product.stock <= 0} className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]">
                       <ShoppingCart size={20} className="mr-2" /> কার্টে যোগ করুন
                   </button>
                   <button 
@@ -525,122 +372,46 @@ const ProductDetail: React.FC = () => {
                       এখনই কিনুন
                   </button>
               </div>
-              
-              <div className="mt-6 grid grid-cols-2 gap-4 text-xs font-medium text-gray-500">
-                  <div className="flex items-center bg-gray-50 p-2 rounded-lg">
-                      <Shield size={14} className="mr-2 text-green-600"/> ১০০% অথেনটিক
-                  </div>
-                  <div className="flex items-center bg-gray-50 p-2 rounded-lg">
-                      <Truck size={14} className="mr-2 text-blue-600"/> দ্রুত ডেলিভারি
-                  </div>
-              </div>
             </div>
           </div>
         </div>
         
-        {/* Mobile Tabs Section */}
+        {/* Mobile Tabs */}
         <div className="mt-12 lg:hidden">
              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="flex border-b border-gray-100 overflow-x-auto">
-                    <button 
-                        onClick={() => setActiveTab('desc')}
-                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        বিবরণ
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('specs')}
-                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        স্পেকস
-                    </button>
-                        <button 
-                        onClick={() => setActiveTab('shipping')}
-                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        ডেলিভারি
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('reviews')}
-                        className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        রিভিউ
-                    </button>
+                    <button onClick={() => setActiveTab('desc')} className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'desc' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>বিবরণ</button>
+                    <button onClick={() => setActiveTab('specs')} className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'specs' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>স্পেকস</button>
+                    <button onClick={() => setActiveTab('shipping')} className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'shipping' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>ডেলিভারি</button>
+                    <button onClick={() => setActiveTab('reviews')} className={`flex-1 min-w-[90px] py-4 text-center font-bold text-sm transition-colors border-b-2 ${activeTab === 'reviews' ? 'border-green-600 text-green-600 bg-green-50/50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>রিভিউ</button>
                 </div>
-                
                 <div className="p-6">
-                    {activeTab === 'desc' && (
-                        <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line">
-                            <p>{product.description}</p>
-                        </div>
-                    )}
+                    {activeTab === 'desc' && <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line"><p>{product.description}</p></div>}
                     {activeTab === 'specs' && (
                          <div className="bg-gray-50 p-4 rounded-lg">
                             <h4 className="font-bold text-gray-900 mb-3">স্পেসিফিকেশন</h4>
-                            {product.specifications ? (
-                                <div className="space-y-2">
-                                    {Object.entries(product.specifications).map(([key, value]) => (
-                                        <div key={key} className="flex justify-between border-b border-gray-200 py-1.5 last:border-0">
-                                            <span className="font-semibold text-gray-800 text-xs">{key}</span>
-                                            <span className="text-gray-600 text-xs">{value}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : <p className="text-gray-500 text-xs">কোনো তথ্য নেই</p>}
+                            {product.specifications ? <div className="space-y-2">{Object.entries(product.specifications).map(([key, value]) => <div key={key} className="flex justify-between border-b border-gray-200 py-1.5 last:border-0"><span className="font-semibold text-gray-800 text-xs">{key}</span><span className="text-gray-600 text-xs">{value}</span></div>)}</div> : <p className="text-gray-500 text-xs">কোনো তথ্য নেই</p>}
                         </div>
                     )}
-                    {activeTab === 'shipping' && (
-                         <div className="space-y-4 text-sm">
-                             <p><span className="font-bold">ইনসাইড ঢাকা:</span> {CURRENCY}{product.shippingFees?.inside}</p>
-                             <p><span className="font-bold">আউটসাইড ঢাকা:</span> {CURRENCY}{product.shippingFees?.outside}</p>
-                             <p className="text-gray-500">ডেলিভারি সময়: ২-৫ কর্মদিবস</p>
-                         </div>
-                    )}
+                    {activeTab === 'shipping' && <div className="space-y-4 text-sm"><p><span className="font-bold">ইনসাইড ঢাকা:</span> {CURRENCY}{product.shippingFees?.inside}</p><p><span className="font-bold">আউটসাইড ঢাকা:</span> {CURRENCY}{product.shippingFees?.outside}</p></div>}
                     {activeTab === 'reviews' && (
                         <div className="space-y-4">
-                            {user && (
-                                <button onClick={() => window.scrollTo(0,0)} className="w-full text-center text-green-600 text-xs font-bold mb-4">রিভিউ লিখতে উপরে যান</button>
-                            )}
-                            {product.reviews && product.reviews.length > 0 ? (
-                                product.reviews.map((review) => (
-                                    <div key={review.id} className="border-b border-gray-50 pb-3">
-                                        <div className="flex justify-between mb-1">
-                                            <span className="font-bold text-sm">{review.userName}</span>
-                                            <span className="text-xs text-gray-400">{review.date}</span>
-                                        </div>
-                                        <div className="flex text-amber-400 mb-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={10} fill={i < review.rating ? "currentColor" : "none"} />
-                                            ))}
-                                        </div>
-                                        <p className="text-sm text-gray-600">{review.comment}</p>
-                                    </div>
-                                ))
-                            ) : <p className="text-center text-gray-400">কোনো রিভিউ নেই</p>}
+                            {user && <button onClick={() => window.scrollTo(0,0)} className="w-full text-center text-green-600 text-xs font-bold mb-4">রিভিউ লিখতে উপরে যান</button>}
+                            {product.reviews && product.reviews.length > 0 ? product.reviews.map((review) => <div key={review.id} className="border-b border-gray-50 pb-3"><div className="flex justify-between mb-1"><span className="font-bold text-sm">{review.userName}</span><span className="text-xs text-gray-400">{review.date}</span></div><div className="flex text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} size={10} fill={i < review.rating ? "currentColor" : "none"} />)}</div><p className="text-sm text-gray-600">{review.comment}</p></div>) : <p className="text-center text-gray-400">কোনো রিভিউ নেই</p>}
                         </div>
                     )}
                 </div>
              </div>
         </div>
 
-        {/* Related Products */}
         <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">রিলেটেড প্রোডাক্ট</h2>
             {relatedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    {relatedProducts.map((p, i) => (
-                        <div key={p.id} className="animate-slide-up" style={{animationDelay: `${i * 100}ms`}}>
-                           <ProductCard product={p} />
-                        </div>
-                    ))}
+                    {relatedProducts.map((p, i) => <div key={p.id} className="animate-slide-up" style={{animationDelay: `${i * 100}ms`}}><ProductCard product={p} /></div>)}
                 </div>
-            ) : (
-                <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                     <p className="text-gray-500">এই ক্যাটাগরিতে অন্য কোনো পণ্য নেই।</p>
-                </div>
-            )}
+            ) : <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p className="text-gray-500">এই ক্যাটাগরিতে অন্য কোনো পণ্য নেই।</p></div>}
         </div>
-
       </div>
     </div>
   );
