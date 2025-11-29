@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, CartProvider, ShopProvider } from './services/store';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
