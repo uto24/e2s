@@ -1,7 +1,7 @@
 
 import { Product, AffiliateStat, Order, UserRole, WithdrawRequest, AppSettings } from './types';
 
-export const APP_NAME = "ই-শপ";
+export const APP_NAME = "E2S Shop";
 export const CURRENCY = "৳";
 
 const tomorrow = new Date();
