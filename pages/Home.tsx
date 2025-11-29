@@ -186,15 +186,22 @@ const Home: React.FC = () => {
       )}
 
       {/* Featured Products */}
+      {/* Featured Products */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-          <div>
-            <div className="flex items-center text-green-600 font-bold tracking-wider uppercase text-sm mb-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+          
+          <div className="w-full text-center md:text-left">
+            
+            <div className="flex items-center justify-center md:justify-start text-green-600 font-bold tracking-wider uppercase text-sm mb-2">
                 <TrendingUp size={18} className="mr-2" /> ট্রেন্ডিং
             </div>
             <h2 className="text-4xl font-bold text-gray-900">জনপ্রিয় পণ্য</h2>
           </div>
-          <Link to="/categories" className="hidden md:flex items-center text-slate-700 font-bold hover:text-green-600 transition-colors border-b-2 border-transparent hover:border-green-600 pb-1">
+          
+          <Link 
+            to="/categories" 
+            className="flex items-center text-slate-700 font-bold hover:text-green-600 transition-colors border-b-2 border-transparent hover:border-green-600 pb-1 mt-4 mx-auto md:mt-0 md:mx-0"
+          >
             সব পণ্য দেখুন <ArrowRight size={18} className="ml-2" />
           </Link>
         </div>
