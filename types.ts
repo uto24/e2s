@@ -108,8 +108,8 @@ export interface Order {
   items: number;
   paymentMethod: 'cod' | 'bkash' | 'nagad' | 'rocket';
   shippingAddress?: ShippingAddress;
-  transactionId?: string;
-  senderNumber?: string;
+  transactionId?: string | null;
+  senderNumber?: string | null;
   
   // Reseller / Affiliate Info
   affiliateId?: string;
