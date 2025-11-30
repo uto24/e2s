@@ -103,8 +103,8 @@ const Checkout: React.FC = () => {
         items: items.reduce((acc, item) => acc + item.quantity, 0),
         paymentMethod,
         shippingAddress: formData,
-        transactionId: paymentMethod !== 'cod' ? transactionId : undefined,
-        senderNumber: paymentMethod !== 'cod' ? senderNumber : undefined,
+        transactionId: paymentMethod !== 'cod' ? transactionId : null,
+        senderNumber: paymentMethod !== 'cod' ? senderNumber : null,
         
         // Add Reseller Data
         affiliateId: affiliateId,
