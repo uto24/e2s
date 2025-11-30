@@ -112,9 +112,9 @@ export interface Order {
   senderNumber?: string | null;
   
   // Reseller / Affiliate Info
-  affiliateId?: string;
-  totalResellerProfit?: number; // Total profit for the reseller from this order
-  commissionPaid?: boolean; // To ensure we only add balance once
+  affiliateId?: string | null;
+  totalResellerProfit?: number | null; // Total profit for the reseller from this order
+  commissionPaid?: boolean | null; // To ensure we only add balance once
 }
 
 export type WithdrawStatus = 'pending' | 'approved' | 'rejected' | 'paid';
