@@ -107,8 +107,8 @@ const Checkout: React.FC = () => {
         senderNumber: paymentMethod !== 'cod' ? senderNumber : null,
         
         // Add Reseller Data
-        affiliateId: affiliateId,
-        totalResellerProfit: totalResellerProfit,
+        affiliateId: affiliateId | null,
+        totalResellerProfit: totalResellerProfit | null,
         commissionPaid: false // Default to false
       };
 
