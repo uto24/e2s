@@ -57,7 +57,7 @@ const Home: React.FC = () => {
          {/* Background Elements */}
          <div className="absolute inset-0 z-0">
              <img 
-               src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
+               src="https://i.ibb.co/jvvchx4k/cozy-portrait-young-woman-knitted-blue-sweater-bright-pink-makeup-holding-shopping-bags-mobile-phone.jpg" 
                alt="Hero BG" 
                className="w-full h-full object-cover opacity-30"
              />
