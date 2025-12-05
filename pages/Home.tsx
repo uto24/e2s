@@ -44,10 +44,10 @@ const Home: React.FC = () => {
   }
 
   const categories = [
-    { name: "ইলেকট্রনিক্স", icon: Smartphone, color: "bg-blue-50 text-blue-600", image: "https://images.unsplash.com/photo-1498049381945-a0d5eb32c301?auto=format&fit=crop&w=500&q=60" },
+    { name: "ইলেকট্রনিক্স", icon: Smartphone, color: "bg-blue-50 text-blue-600", image: "https://media.istockphoto.com/id/525969104/photo/e-commerce-or-online-shopping-concept-home-appliance-in-shoppin.jpg?s=612x612&w=0&k=20&c=7q2OG1WvB_Eom_V9NlL2Uof_oZIiHvgqSRbmwASOmjo=" },
     { name: "ফ্যাশন", icon: Shirt, color: "bg-pink-50 text-pink-600", image: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=60" },
     { name: "হোম ও লিভিং", icon: HomeIcon, color: "bg-orange-50 text-orange-600", image: "https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&w=500&q=60" },
-    { name: "বিউটি", icon: Sparkles, color: "bg-purple-50 text-purple-600", image: "https://images.unsplash.com/photo-1596462502278-27bfdd403348?auto=format&fit=crop&w=500&q=60" }
+    { name: "বিউটি", icon: Sparkles, color: "bg-purple-50 text-purple-600", image: "https://media.istockphoto.com/id/1658893205/photo/make-up-products-at-pink-background-top-view.jpg?s=612x612&w=0&k=20&c=z_oW0dg17wcluvcgwxmWXJqJCUpMXqY0IaqJGe9xZG0=" }
   ];
 
   return (
